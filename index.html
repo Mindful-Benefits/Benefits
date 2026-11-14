@@ -1,0 +1,3496 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Benefits - Mindful Holdings | Phúc Lợi Nhân Viên</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            mindful: {
+              green: '#12372A',
+              greenLight: '#1E4D3B',
+              greenTint: '#EAF2EE',
+              gold: '#E8A825',
+              goldLight: '#FDF6E3',
+              bronze: '#9E5E24',
+              cream: '#FAF9F5'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAF9F5;
+      color: #1E293B;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+      body {
+        background: #FFFFFF !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #printAreaBM01 {
+        display: block !important;
+        width: 100% !important;
+      }
+      .print-sheet-break {
+        page-break-after: always;
+      }
+      .print-sheet-break:last-child {
+        page-break-after: auto;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ======================================================================= -->
+  <!-- TOP BRAND HEADER (MINDFUL HOLDINGS / MINDFUL MEALS)                     -->
+  <!-- ======================================================================= -->
+  <header class="no-print bg-mindful-green text-white shadow-md sticky top-0 z-30 border-b-4 border-mindful-gold">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-white p-1.5 rounded-xl shadow-sm flex items-center justify-center">
+            <svg width="38" height="38" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="circleClipHeader">
+                  <circle cx="50" cy="50" r="46" />
+                </clipPath>
+              </defs>
+              <g clip-path="url(#circleClipHeader)">
+                <rect x="0" y="0" width="50" height="100" fill="#12372A" />
+                <rect x="50" y="0" width="50" height="100" fill="#E8A825" />
+                <circle cx="50" cy="58" r="14" stroke="#F8F5EC" stroke-opacity="0.35" stroke-width="2" />
+                <path d="M22 76V36C22 33 25.5 31.5 27.8 33.5L50 54L72.2 33.5C74.5 31.5 78 33 78 36V76"
+                      stroke="#F8F5EC" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="50" cy="58" r="6" fill="#E8A825" stroke="#F8F5EC" stroke-width="3.5" />
+              </g>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">
+                Employee Benefits <span class="text-mindful-gold font-semibold">– Mindful Holdings</span>
+              </h1>
+              <span class="hidden sm:inline-block text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-mindful-gold/20 text-mindful-gold border border-mindful-gold/40">
+                Mindful Meals
+              </span>
+            </div>
+            <p class="text-xs text-emerald-100/85">Hệ thống Phúc lợi Nhân viên • Ưu đãi FOC (QĐ 01/QĐ-MM) &amp; Cơm Ca</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation & Cloud Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <nav class="flex items-center gap-1.5 bg-mindful-greenLight/80 p-1.5 rounded-2xl border border-white/10">
+          <button id="nav-foc" onclick="switchTab('foc')" class="tab-btn active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 bg-mindful-gold text-mindful-green shadow-sm">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Free of Charge</span>
+          </button>
+          <button id="nav-meal" onclick="switchTab('meal')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-emerald-100 hover:bg-white/10">
+            <i class="fa-solid fa-bowl-rice"></i>
+            <span>Staff Meal</span>
+          </button>
+          <button id="nav-hr" onclick="switchTab('hr')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-emerald-100 hover:bg-white/10">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>HR Audit &amp; Danh mục</span>
+          </button>
+        </nav>
+
+        <!-- Role Badge & Lock Button -->
+        <div class="flex items-center gap-1.5">
+          <span id="roleModeBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 text-emerald-100 border border-white/20 text-xs font-semibold">
+            <i class="fa-solid fa-user-shield text-mindful-gold"></i>
+            <span id="roleModeText">Admin HC-NS</span>
+          </span>
+          <button onclick="logoutSession()" title="Đổi vai trò / Khóa màn hình" class="px-2.5 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/35 text-red-100 border border-red-400/30 text-xs font-semibold transition flex items-center gap-1">
+            <i class="fa-solid fa-lock"></i>
+            <span class="hidden md:inline">Khóa</span>
+          </button>
+        </div>
+
+        <!-- Google Sheets Cloud Sync Status & Quick Pull -->
+        <div class="flex items-center gap-1.5">
+          <button id="cloudStatusBtn" onclick="openCloudConfigModal()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition flex items-center gap-2" title="Cài đặt kết nối Google Sheets">
+            <span id="cloudStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span id="cloudStatusLabel">Offline Mode</span>
+          </button>
+          <button id="quickSyncBtn" onclick="syncFromGoogleSheets(true)" class="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition flex items-center gap-1.5" title="Tải dữ liệu mới nhất từ Google Sheets để kiểm tra đột xuất">
+            <i id="quickSyncIcon" class="fa-solid fa-rotate"></i>
+            <span class="hidden lg:inline">Đồng bộ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                                  -->
+  <!-- ======================================================================= -->
+  <main class="no-print flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ===================================================================== -->
+    <!-- MODULE 1: FREE OF CHARGE (BM-01/QT-FOC)                               -->
+    <!-- ===================================================================== -->
+    <section id="section-foc" class="space-y-6">
+      <!-- Top Control & Form Context Bar -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-mindful-greenTint text-mindful-green border border-mindful-green/20">
+                BM-01/QT-FOC
+              </span>
+              <span class="text-xs text-slate-500 font-medium">Hiệu lực: 04/08/2026 • QĐ số 01/QĐ-MM</span>
+            </div>
+            <h2 class="text-lg sm:text-xl font-bold text-mindful-green mt-1">
+              Bảng Tổng Hợp Sử Dụng Dịch Vụ Ưu Đãi / FOC (Theo Tuần)
+            </h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openPolicyModal()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-mindful-goldLight text-mindful-bronze hover:bg-mindful-gold/25 border border-mindful-gold/40 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-book-open"></i>
+              <span>Tra cứu Quy trình QĐ 01</span>
+            </button>
+            <button onclick="exportFOCWordBM01()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-file-word"></i>
+              <span>Xuất Word BM-01 (100% Mẫu)</span>
+            </button>
+            <button onclick="exportFOCExcel()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Xuất Excel BM-01</span>
+            </button>
+            <button onclick="prepareAndPrintBM01()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-mindful-green hover:bg-mindful-greenLight text-white transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-print"></i>
+              <span>In Biểu Mẫu (A4)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Restaurant & Week Metadata Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 pt-4 items-end">
+          <div class="lg:col-span-4">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nhà hàng áp dụng</label>
+            <div class="flex gap-1.5">
+              <select id="focRestaurantSelect" onchange="renderFOCTable()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mindful-green bg-white disabled:bg-slate-100 disabled:text-mindful-green disabled:font-bold disabled:cursor-not-allowed">
+              </select>
+              <button id="focQuickAddRestBtn" type="button" onclick="quickAddRestaurantPrompt()" title="Thêm nhà hàng mới" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tuần từ ngày (Thứ 2)</label>
+            <input type="date" id="focWeekStart" onchange="onWeekStartChange()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Đến ngày (Chủ Nhật)</label>
+            <input type="date" id="focWeekEnd" onchange="renderFOCTable()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <div class="lg:col-span-2">
+            <div class="rounded-xl bg-mindful-greenTint border border-mindful-green/20 px-3.5 py-2 flex items-center justify-between">
+              <div>
+                <span class="block text-[11px] font-medium text-slate-500">Tờ số tự nhảy</span>
+                <span id="focSheetCountBadge" class="text-sm font-extrabold text-mindful-green">Tờ số: 01</span>
+              </div>
+              <span id="focTotalRowsBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-mindful-green border border-mindful-green/15">0 lượt</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cashier Quick Entry Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm sm:text-base font-bold text-mindful-green flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-mindful-gold text-mindful-green flex items-center justify-center text-xs font-extrabold">
+              <i class="fa-solid fa-cash-register"></i>
+            </span>
+            <span>Nhập Nhanh Giao Dịch Tại Quầy Thu Ngân</span>
+          </h3>
+          <span class="text-xs text-slate-500 hidden sm:inline">Gõ tên hoặc mã NV để tự động điền thông tin &amp; kiểm tra hạn mức</span>
+        </div>
+
+        <form id="focEntryForm" onsubmit="handleAddFOCTransaction(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
+          <!-- Date -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ngày sử dụng *</label>
+            <input type="date" id="focUsageDate" required onchange="recalculateFOCPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Staff Autocomplete Lookup -->
+          <div class="lg:col-span-4 relative">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tìm Nhân viên (Tên / SĐT / Mã NV) *</label>
+            <div class="relative">
+              <input type="text" id="focStaffSearch" autocomplete="off" required placeholder="Nhập tên hoặc mã NV..." oninput="handleStaffSearchInput(this.value)" onfocus="handleStaffSearchInput(this.value)" class="w-full rounded-xl border border-slate-300 pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+              <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute right-3 top-3"></i>
+            </div>
+            <input type="hidden" id="focSelectedStaffId" />
+            <!-- Dropdown Suggestions -->
+            <div id="staffSearchDropdown" class="hidden absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-slate-200 max-h-60 overflow-y-auto z-40"></div>
+          </div>
+
+          <!-- Auto-filled Role / Title -->
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên / Chức danh (Tự điền)</label>
+            <input type="text" id="focStaffTitleDisplay" readonly placeholder="Tự động hiển thị..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 cursor-not-allowed" />
+          </div>
+
+          <!-- Benefit Type -->
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Loại hình ưu đãi *</label>
+            <div id="focTypeButtons" class="grid grid-cols-3 gap-2 mb-1">
+              <button type="button" data-t="EMP15" onclick="setBenefitType('EMP15')" class="rounded-xl border px-2 py-2 text-xs font-bold">EMP15<br><span class="font-normal">Ưu đãi NV</span></button>
+              <button type="button" data-t="MGRCREDIT" onclick="setBenefitType('MGRCREDIT')" class="rounded-xl border px-2 py-2 text-xs font-bold">MGRCREDIT<br><span class="font-normal">Điểm quản lý</span></button>
+              <button type="button" data-t="FOC-OTH" onclick="setBenefitType('FOC-OTH')" class="rounded-xl border px-2 py-2 text-xs font-bold">FOC-OTH<br><span class="font-normal">Tiếp khách</span></button>
+            </div>
+            <select id="focBenefitType" onchange="onBenefitTypeChange()" class="hidden w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-mindful-green bg-white focus:outline-none focus:ring-2 focus:ring-mindful-green">
+              <option value="EMP15">EMP15 – Ưu đãi NV (Giảm 15% đồ ăn)</option>
+              <option value="MGRCREDIT">MGRCREDIT – Điểm phúc lợi Quản lý</option>
+              <option value="FOC-OTH">FOC-OTH – Tiếp khách / Xử lý công việc</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Policy Helper Banner -->
+          <div id="focPolicyHelperBox" class="sm:col-span-2 lg:col-span-12 rounded-xl bg-mindful-goldLight/80 border border-mindful-gold/40 px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+            <div id="focPolicyHelperText" class="text-slate-700 font-medium">
+              <i class="fa-solid fa-circle-info text-mindful-bronze mr-1.5"></i>
+              Chọn nhân viên và nhập giá trị hóa đơn để hệ thống tự động tính mức ưu đãi &amp; số tiền thanh toán thêm.
+            </div>
+            <div id="focQuotaBadge" class="hidden font-bold text-mindful-green bg-white px-2.5 py-1 rounded-lg border border-mindful-green/20 shrink-0">
+              Số dư MGRCREDIT: 0 đ
+            </div>
+          </div>
+
+          <!-- Điều kiện theo QĐ 01/QĐ-MM (bắt buộc tích trước khi lưu) -->
+          <div class="sm:col-span-2 lg:col-span-12 flex flex-wrap items-end gap-x-6 gap-y-2 text-xs font-medium text-slate-700 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+            <label id="chkOffWrap" class="inline-flex items-center gap-2"><input type="checkbox" id="focChkOff" class="w-4 h-4" /> Người sử dụng đang NGOÀI giờ làm việc (đã ra ca / ngày nghỉ)</label>
+            <label id="chkPresentWrap" class="hidden inline-flex items-center gap-2"><input type="checkbox" id="focChkPresent" class="w-4 h-4" /> Có mặt trực tiếp trong bữa ăn</label>
+            <div id="focFoodWrap" class="hidden"><span class="block mb-1">Giá trị ĐỒ ĂN trong bill (VNĐ) *</span><input type="number" id="focFoodAmount" min="0" step="1000" oninput="recalculateFOCPreview()" class="w-44 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-right" /></div>
+            <div id="focApproverWrap" class="hidden"><span class="block mb-1">Người phê duyệt (&gt;10%) *</span><input type="text" id="focApprover" placeholder="Họ tên + chức danh" class="w-56 rounded-xl border border-slate-300 px-3 py-1.5 text-sm" /></div>
+          </div>
+
+          <!-- Bill Code -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mã bill thanh toán *</label>
+            <input type="text" id="focBillCode" required placeholder="VD: B2026-0812" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase font-mono focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Bill Total Amount -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Giá trị hóa đơn (VNĐ) *</label>
+            <input type="number" id="focBillAmount" required min="0" step="1000" placeholder="0" oninput="recalculateFOCPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Custom Discount % for FOC-OTH -->
+          <div id="focCustomPercentWrap" class="hidden lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">% Giảm duyệt (FOC-OTH)</label>
+            <input type="number" id="focCustomPercent" min="1" max="100" value="10" oninput="recalculateFOCPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Calculated Discount Amount -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mức ưu đãi (VNĐ)</label>
+            <input type="number" id="focDiscountAmount" min="0" step="1000" value="0" oninput="recalculateExtraFromManualDiscount()" class="w-full rounded-xl border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-sm font-bold text-emerald-800 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Extra Payment if Exceeded -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">TT thêm (nếu vượt)</label>
+            <input type="number" id="focExtraAmount" min="0" step="1000" value="0" class="w-full rounded-xl border border-amber-300 bg-amber-50/70 px-3 py-2 text-sm font-bold text-amber-900 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Cashier Name -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Thu ngân trực ca *</label>
+            <input type="text" id="focCashierName" required placeholder="Tên thu ngân..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- Note & Approval Authority -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú / Cấp duyệt</label>
+            <input type="text" id="focNote" placeholder="VD: QLNH duyệt 10%..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <!-- User Verification Method & Submit -->
+          <div class="sm:col-span-2 lg:col-span-12 pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-semibold text-slate-600">Xác nhận của người sử dụng ngay tại quầy:</span>
+              <button type="button" onclick="openSignatureModal('new')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-signature text-mindful-green"></i>
+                <span>Ký tay trên màn hình</span>
+              </button>
+              <button type="button" onclick="openPinModal('new')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-key text-mindful-bronze"></i>
+                <span>Xác nhận mã PIN 4 số</span>
+              </button>
+              <span id="newEntryVerifyStatus" class="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                Chưa xác nhận (Có thể ký sau trên bảng)
+              </span>
+            </div>
+
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-plus-circle text-mindful-gold"></i>
+              <span>Lưu Dòng Vào Biểu Mẫu</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Weekly BM-01/QT-FOC Live Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-4 sm:px-5 py-3.5 bg-mindful-greenTint/60 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm text-mindful-green">Danh sách phát sinh trong tuần đã chọn</span>
+            <span class="text-xs text-slate-500">(Mỗi 12 dòng tự động đánh số 1 Tờ mới theo quy định BM-01)</span>
+          </div>
+          <div class="text-xs font-semibold text-slate-600">
+            Tổng hóa đơn: <span id="focSumBill" class="text-slate-900 font-bold">0 đ</span> •
+            Tổng ưu đãi: <span id="focSumDiscount" class="text-emerald-700 font-bold">0 đ</span> •
+            Tổng TT thêm: <span id="focSumExtra" class="text-amber-800 font-bold">0 đ</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse min-w-[1050px]">
+            <thead>
+              <tr class="bg-mindful-green text-white text-xs uppercase tracking-wider">
+                <th class="py-3 px-3 text-center w-14">STT / Tờ</th>
+                <th class="py-3 px-3 w-28">Ngày sử dụng</th>
+                <th class="py-3 px-3 w-48">Họ và tên / Chức danh</th>
+                <th class="py-3 px-3 w-32">Loại hình</th>
+                <th class="py-3 px-3 w-28">Mã bill</th>
+                <th class="py-3 px-3 text-right w-32">Giá trị HĐ</th>
+                <th class="py-3 px-3 text-right w-32">Mức ưu đãi</th>
+                <th class="py-3 px-3 text-right w-32">TT thêm</th>
+                <th class="py-3 px-3 text-center w-40">Chữ ký người SD</th>
+                <th class="py-3 px-3 w-28">Thu ngân</th>
+                <th class="py-3 px-3 w-36">Ghi chú</th>
+                <th class="py-3 px-2 text-center w-12">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="focTableBody" class="divide-y divide-slate-200 text-xs sm:text-sm">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MODULE 2: STAFF MEAL (CHẤM & ĐĂNG KÝ CƠM CA NHÀ HÀNG)                  -->
+    <!-- ===================================================================== -->
+    <section id="section-meal" class="hidden space-y-6">
+      <!-- Header & Controls -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-mindful-goldLight text-mindful-bronze border border-mindful-gold/40">
+              STAFF MEAL CHECKLIST
+            </span>
+            <h2 class="text-lg sm:text-xl font-bold text-mindful-green mt-1">
+              Bảng Đăng Ký &amp; Kiểm Soát Suất Ăn Cơm Ca Nhà Hàng
+            </h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Mode Switcher: Staff Self-Register vs Manager Bulk Checklist -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button id="mealModeSelfBtn" onclick="setMealMode('self')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-mindful-green text-white shadow-sm transition">
+                <i class="fa-solid fa-mobile-screen-button mr-1"></i>NV Tự Đăng Ký
+              </button>
+              <button id="mealModeMgrBtn" onclick="setMealMode('manager')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                <i class="fa-solid fa-clipboard-check mr-1"></i>Quản Lý Chốt Ca
+              </button>
+            </div>
+
+            <button onclick="exportStaffMealExcel()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Xuất Báo Cáo Cơm Ca</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters: Restaurant & Date -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 pt-4 items-end">
+          <div class="lg:col-span-4">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nhà hàng</label>
+            <select id="mealRestaurantSelect" onchange="renderMealSection()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mindful-green bg-white disabled:bg-slate-100 disabled:text-mindful-green disabled:font-bold disabled:cursor-not-allowed">
+            </select>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Ngày báo cơm ca</label>
+            <input type="date" id="mealDateInput" onchange="renderMealSection()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+
+          <div class="lg:col-span-5 grid grid-cols-3 gap-2">
+            <div class="rounded-xl bg-mindful-greenTint border border-mindful-green/15 px-3 py-2 text-center">
+              <span class="block text-[11px] text-slate-500 font-medium">Ca Sáng/Trưa</span>
+              <span id="mealCountS1" class="text-base font-extrabold text-mindful-green">0</span>
+            </div>
+            <div class="rounded-xl bg-mindful-goldLight border border-mindful-gold/30 px-3 py-2 text-center">
+              <span class="block text-[11px] text-slate-500 font-medium">Ca Chiều/Tối</span>
+              <span id="mealCountS2" class="text-base font-extrabold text-mindful-bronze">0</span>
+            </div>
+            <div class="rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-center">
+              <span class="block text-[11px] text-slate-500 font-medium">Tổng Suất Ngày</span>
+              <span id="mealCountTotal" class="text-base font-extrabold text-slate-900">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Self-Registration Quick Kiosk Panel -->
+      <div id="mealSelfRegisterPanel" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <h3 class="text-sm sm:text-base font-bold text-mindful-green mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-utensils text-mindful-gold"></i>
+          <span>Cổng Nhân Viên Tự Báo Suất Ăn Trong Ngày</span>
+        </h3>
+        <form onsubmit="handleSelfMealRegister(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          <div class="lg:col-span-3">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Chọn tên nhân viên *</label>
+            <select id="mealSelfStaffSelect" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-mindful-green">
+            </select>
+          </div>
+          <div class="lg:col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+              <input type="checkbox" id="mealSelfS1" checked class="w-4 h-4 rounded text-mindful-green focus:ring-mindful-green" />
+              <span>Ca 1 - Trưa (12h-12h45)</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+              <input type="checkbox" id="mealSelfS2" class="w-4 h-4 rounded text-mindful-green focus:ring-mindful-green" />
+              <span>Ca 2 - Tối (16h30-17h15)</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+              <input type="checkbox" id="mealSelfOT" class="w-4 h-4 rounded text-mindful-green focus:ring-mindful-green" />
+              <span>Tăng ca</span>
+            </label>
+          </div>
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">4 số cuối SĐT *</label>
+            <input type="password" id="mealSelfPin" maxlength="4" inputmode="numeric" required placeholder="••••" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-center tracking-widest" />
+          </div>
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú (Ăn chay...)</label>
+            <input type="text" id="mealSelfNote" placeholder="Tùy chọn..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+          <div class="lg:col-span-2">
+            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white font-bold text-sm transition shadow-sm">
+              Đăng Ký Suất
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Manager Interactive Checklist Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-4 sm:px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <span class="font-bold text-sm text-mindful-green">Bảng Checklist Suất Ăn Chi Tiết Theo Nhân Sự</span>
+            <p class="text-xs text-slate-500">Quản lý tích chọn hoặc điều chỉnh trực tiếp số suất ăn thực tế của từng nhân viên trong ngày</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="bulkCheckShift('s1', true)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-mindful-greenTint text-mindful-green border border-slate-300 text-xs font-semibold transition">
+              Tích tất cả Ca 1
+            </button>
+            <button type="button" onclick="bulkCheckShift('s2', true)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-mindful-goldLight text-mindful-bronze border border-slate-300 text-xs font-semibold transition">
+              Tích tất cả Ca 2
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse min-w-[780px]">
+            <thead>
+              <tr class="bg-mindful-green text-white text-xs uppercase tracking-wider">
+                <th class="py-3 px-4 w-14 text-center">STT</th>
+                <th class="py-3 px-4 w-28">Mã NV</th>
+                <th class="py-3 px-4">Họ và tên</th>
+                <th class="py-3 px-4">Chức danh</th>
+                <th class="py-3 px-3 text-center w-24">Ca 1 - Trưa (12h-12h45)</th>
+                <th class="py-3 px-3 text-center w-24">Ca 2 - Tối (16h30-17h15)</th>
+                <th class="py-3 px-3 text-center w-24">Tăng ca</th>
+                <th class="py-3 px-3 text-center w-24">Tổng suất</th>
+                <th class="py-3 px-4 w-48">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="mealChecklistBody" class="divide-y divide-slate-200 text-sm">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Multi-Period Statistics Dashboard (Day / Month / Year) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-mindful-green flex items-center gap-2">
+              <i class="fa-solid fa-chart-column text-mindful-gold"></i>
+              <span>Thống Kê Tổng Hợp Cơm Ca (Theo Ngày / Tháng / Năm)</span>
+            </h3>
+            <p class="text-xs text-slate-500">Tự động tổng hợp số lượng suất ăn phục vụ đối chiếu chi phí bếp nội bộ</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="mealStatsScope" onchange="renderMealStatistics()" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold bg-white disabled:bg-slate-100 disabled:text-mindful-green disabled:cursor-not-allowed">
+              <option value="selected">Nhà hàng đang chọn</option>
+              <option value="all">Toàn chuỗi Mindful Meals</option>
+            </select>
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button onclick="setMealStatsPeriod('day')" id="statsPeriod-day" class="stats-period-btn px-3 py-1 rounded-lg text-xs font-bold bg-white text-mindful-green shadow-sm">Theo Ngày (Tháng)</button>
+              <button onclick="setMealStatsPeriod('month')" id="statsPeriod-month" class="stats-period-btn px-3 py-1 rounded-lg text-xs font-bold text-slate-600">Theo Tháng (Năm)</button>
+              <button onclick="setMealStatsPeriod('year')" id="statsPeriod-year" class="stats-period-btn px-3 py-1 rounded-lg text-xs font-bold text-slate-600">Theo Năm</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary KPIs -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-xs text-slate-500 font-medium">Suất ăn ngày đang chọn</span>
+            <p id="statKpiDay" class="text-xl font-extrabold text-mindful-green mt-1">0 suất</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-xs text-slate-500 font-medium">Tổng suất trong tháng</span>
+            <p id="statKpiMonth" class="text-xl font-extrabold text-mindful-bronze mt-1">0 suất</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-xs text-slate-500 font-medium">Tổng suất cả năm</span>
+            <p id="statKpiYear" class="text-xl font-extrabold text-slate-900 mt-1">0 suất</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-mindful-greenTint border border-mindful-green/20">
+            <span class="text-xs text-mindful-green font-semibold">Bình quân suất / ngày hoạt động</span>
+            <p id="statKpiAvg" class="text-xl font-extrabold text-mindful-green mt-1">0 suất</p>
+          </div>
+        </div>
+
+        <!-- Breakdown Table -->
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
+                <th class="py-2.5 px-4">Kỳ thống kê</th>
+                <th class="py-2.5 px-4 text-center">Ca 1 - Trưa (12h-12h45)</th>
+                <th class="py-2.5 px-4 text-center">Ca 2 - Tối (16h30-17h15)</th>
+                <th class="py-2.5 px-4 text-center">Tăng ca</th>
+                <th class="py-2.5 px-4 text-right">Tổng suất ăn</th>
+                <th class="py-2.5 px-4 w-48">Tỷ trọng</th>
+              </tr>
+            </thead>
+            <tbody id="mealStatsTableBody" class="divide-y divide-slate-200 text-sm">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MODULE 3: HR MASTER DATA & SUDDEN AUDIT DASHBOARD                     -->
+    <!-- ===================================================================== -->
+    <section id="section-hr" class="hidden space-y-6">
+      <!-- Real-Time Office Audit Monitor (Kiểm tra đột xuất toàn chuỗi) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">
+              REAL-TIME OFFICE AUDIT
+            </span>
+            <h2 class="text-base sm:text-lg font-bold text-mindful-green mt-1 flex items-center gap-2">
+              <i class="fa-solid fa-eye text-mindful-gold"></i>
+              <span>Giám Sát &amp; Kiểm Tra Đột Xuất Toàn Chuỗi Nhà Hàng</span>
+            </h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="auditRestaurantFilter" onchange="renderAuditLog()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold bg-white disabled:bg-slate-100 disabled:text-mindful-green disabled:cursor-not-allowed">
+              <option value="ALL">Tất cả nhà hàng</option>
+            </select>
+            <button onclick="syncFromGoogleSheets(true)" class="px-3.5 py-2 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate"></i>
+              <span>Làm mới dữ liệu ngay</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Audit Summary Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-xl bg-mindful-greenTint border border-mindful-green/20">
+            <span class="text-xs text-slate-600 font-medium">Lượt FOC hôm nay</span>
+            <p id="auditTodayFocCount" class="text-xl font-extrabold text-mindful-green mt-1">0 lượt</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-mindful-goldLight border border-mindful-gold/40">
+            <span class="text-xs text-slate-600 font-medium">Giá trị ưu đãi hôm nay</span>
+            <p id="auditTodayFocAmount" class="text-xl font-extrabold text-mindful-bronze mt-1">0 đ</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-red-50 border border-red-200">
+            <span class="text-xs text-red-700 font-medium">Giao dịch chưa ký xác nhận</span>
+            <p id="auditUnsignedCount" class="text-xl font-extrabold text-red-700 mt-1">0 lượt</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-xs text-slate-600 font-medium">Suất cơm ca hôm nay</span>
+            <p id="auditTodayMealCount" class="text-xl font-extrabold text-slate-900 mt-1">0 suất</p>
+          </div>
+        </div>
+
+        <!-- Recent Live FOC Feed Across All Restaurants -->
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse min-w-[850px]">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
+                <th class="py-2.5 px-3">Ngày</th>
+                <th class="py-2.5 px-3">Nhà hàng</th>
+                <th class="py-2.5 px-3">Người sử dụng</th>
+                <th class="py-2.5 px-3">Loại</th>
+                <th class="py-2.5 px-3">Mã Bill</th>
+                <th class="py-2.5 px-3 text-right">Ưu đãi</th>
+                <th class="py-2.5 px-3 text-center">Trạng thái ký</th>
+                <th class="py-2.5 px-3">Thu ngân</th>
+              </tr>
+            </thead>
+            <tbody id="auditRecentFocBody" class="divide-y divide-slate-200 text-xs">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Restaurants & Backup Management -->
+        <div class="lg:col-span-4 space-y-6">
+          <!-- Restaurants Card -->
+          <div id="hrRestaurantManageCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <div class="flex items-center justify-between mb-1">
+              <h2 class="text-base font-bold text-mindful-green flex items-center gap-2">
+                <i class="fa-solid fa-store text-mindful-gold"></i>
+                <span>Nhà Hàng &amp; Link Phân Quyền</span>
+              </h2>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-3">Mỗi nhà hàng có đường link ghim sẵn cơ sở và mã PIN đăng nhập riêng. Bấm nút <b>Copy Link Riêng</b> để gửi cho quản lý/thu ngân cơ sở đó.</p>
+            <form onsubmit="handleAddRestaurant(event)" class="grid grid-cols-12 gap-2 mb-4">
+              <input type="text" id="newRestaurantName" required placeholder="Tên nhà hàng mới..." class="col-span-7 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+              <input type="text" id="newRestaurantPin" required maxlength="6" placeholder="PIN (VD: 1122)" class="col-span-3 rounded-xl border border-slate-300 px-2.5 py-2 text-xs font-mono text-center focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+              <button type="submit" class="col-span-2 py-2 rounded-xl bg-mindful-green text-white text-xs font-bold hover:bg-mindful-greenLight transition">
+                Thêm
+              </button>
+            </form>
+            <ul id="restaurantListUI" class="space-y-2.5 text-sm">
+              <!-- Populated by JS -->
+            </ul>
+            <!-- Admin PIN Config -->
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-slate-600"><i class="fa-solid fa-key text-mindful-bronze mr-1"></i>Mã PIN Admin HC-NS:</span>
+              <div class="flex items-center gap-1.5">
+                <input type="password" id="adminMasterPinInput" maxlength="8" class="w-24 rounded-lg border border-slate-300 px-2 py-1 text-xs font-mono font-bold text-center text-mindful-green" />
+                <button type="button" onclick="updateAdminMasterPin()" class="px-2.5 py-1 rounded-lg bg-mindful-goldLight hover:bg-mindful-gold text-mindful-green text-xs font-bold transition">Lưu</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Backup & Cloud Push Card -->
+          <div id="hrBackupCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <h2 class="text-base font-bold text-mindful-green flex items-center gap-2">
+              <i class="fa-solid fa-database text-mindful-gold"></i>
+              <span>Đồng Bộ &amp; Sao Lưu Dữ Liệu</span>
+            </h2>
+            <p class="text-xs text-slate-500">
+              Đẩy toàn bộ dữ liệu hiện tại lên Google Sheets hoặc xuất file dự phòng JSON.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="pushAllToGoogleSheets()" class="px-3 py-1.5 rounded-xl bg-mindful-gold hover:bg-mindful-bronze text-mindful-green hover:text-white text-xs font-bold transition">
+                <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Đẩy toàn bộ dữ liệu lên Google Sheets
+              </button>
+              <button onclick="resetToSampleData()" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-semibold transition">
+                <i class="fa-solid fa-rotate-left mr-1"></i>Xóa sạch dữ liệu thiết bị
+              </button>
+              <button onclick="exportFullBackup()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+                <i class="fa-solid fa-download mr-1"></i>Sao lưu JSON
+              </button>
+              <label class="px-3 py-1.5 rounded-xl bg-mindful-greenTint hover:bg-mindful-green/15 text-mindful-green text-xs font-semibold cursor-pointer transition">
+                <i class="fa-solid fa-upload mr-1"></i>Khôi phục JSON
+                <input type="file" accept=".json" onchange="importFullBackup(event)" class="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Staff & Quota Directory -->
+        <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-mindful-green">
+                Danh Mục Nhân Sự &amp; Hạn Mức MGRCREDIT
+              </h2>
+              <p class="text-xs text-slate-500">Hạn mức tháng theo QĐ 01/QĐ-MM: QLNH 1.000.000đ • Ban Điều hành 5.000.000đ • CEO 10.000.000đ</p>
+            </div>
+            <label id="hrImportLabel" class="px-3 py-2 rounded-xl bg-mindful-goldLight hover:bg-mindful-gold/25 text-mindful-bronze border border-mindful-gold/40 text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Import Danh Sách Thụ Hưởng (Chuẩn Mẫu)</span>
+              <input type="file" accept=".csv,.txt,.xlsx,.xls" onchange="importStaffCSV(event)" class="hidden" />
+            </label>
+          </div>
+
+          <!-- Add Staff Form -->
+          <form id="hrAddStaffForm" onsubmit="handleAddStaff(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 items-end">
+            <div class="lg:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Mã NV *</label>
+              <input type="text" id="hrStaffCode" required placeholder="MM010" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs uppercase font-mono bg-white" />
+            </div>
+            <div class="lg:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Họ và tên *</label>
+              <input type="text" id="hrStaffName" required placeholder="Nguyễn Văn A" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white" />
+            </div>
+            <div class="lg:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Số điện thoại *</label>
+              <input type="text" id="hrStaffPhone" required placeholder="0905xxxxxx" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono bg-white" />
+            </div>
+            <div class="lg:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Chức danh *</label>
+              <input type="text" id="hrStaffRole" required placeholder="VD: Quản lý Nhà hàng" onchange="autoFillQuotaByRole(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white" />
+            </div>
+            <div class="lg:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Hạn mức MGR (đ)</label>
+              <input type="number" id="hrStaffQuota" min="0" step="100000" value="0" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-right font-semibold bg-white" />
+            </div>
+            <div class="lg:col-span-5">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nhà hàng trực thuộc</label>
+              <select id="hrStaffRestaurant" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white"></select>
+            </div>
+            <div class="lg:col-span-7 flex justify-end">
+              <button type="submit" class="px-4 py-2 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white text-xs font-bold transition">
+                <i class="fa-solid fa-user-plus mr-1"></i>Thêm Nhân Sự Vào Hệ Thống
+              </button>
+            </div>
+          </form>
+
+          <!-- Search & Staff Table -->
+          <div class="flex items-center justify-between gap-2">
+            <input type="text" id="hrSearchInput" oninput="renderHRTable()" placeholder="Tìm theo tên, mã NV, SĐT hoặc chức danh..." class="w-full sm:w-80 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+            <span id="hrTotalCountBadge" class="text-xs font-semibold text-slate-500">0 nhân sự</span>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse min-w-[760px]">
+              <thead>
+                <tr class="bg-mindful-green text-white text-xs uppercase">
+                  <th class="py-2.5 px-3">Mã NV</th>
+                  <th class="py-2.5 px-3">Họ và tên</th>
+                  <th class="py-2.5 px-3">SĐT</th>
+                  <th class="py-2.5 px-3">Chức danh</th>
+                  <th class="py-2.5 px-3">Cơ sở</th>
+                  <th class="py-2.5 px-3 text-right">Hạn mức/Tháng</th>
+                  <th class="py-2.5 px-3 text-right">Còn lại tháng này</th>
+                  <th class="py-2.5 px-3 text-center">Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="hrStaffTableBody" class="divide-y divide-slate-200 text-xs">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- ACCESS GATE OVERLAY (BRANCH LOCK & PIN PROTECTION)                      -->
+  <!-- ======================================================================= -->
+  <div id="accessGateModal" class="hidden fixed inset-0 z-50 bg-mindful-green/95 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-5 border border-mindful-gold/40">
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center justify-center p-2 rounded-2xl bg-mindful-greenTint border border-mindful-green/15">
+          <svg width="46" height="46" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><clipPath id="circleClipGate"><circle cx="50" cy="50" r="46" /></clipPath></defs>
+            <g clip-path="url(#circleClipGate)">
+              <rect x="0" y="0" width="50" height="100" fill="#12372A" />
+              <rect x="50" y="0" width="50" height="100" fill="#E8A825" />
+              <circle cx="50" cy="58" r="14" stroke="#F8F5EC" stroke-opacity="0.35" stroke-width="2" />
+              <path d="M22 76V36C22 33 25.5 31.5 27.8 33.5L50 54L72.2 33.5C74.5 31.5 78 33 78 36V76" stroke="#F8F5EC" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="50" cy="58" r="6" fill="#E8A825" stroke="#F8F5EC" stroke-width="3.5" />
+            </g>
+          </svg>
+        </div>
+        <h2 class="text-lg font-extrabold text-mindful-green">Employee Benefits - Mindful Holdings</h2>
+        <div id="gateBranchBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-mindful-goldLight text-mindful-bronze border border-mindful-gold/50">
+          Chế độ Quản trị Toàn Chuỗi (Admin HC-NS)
+        </div>
+        <p id="gateDescription" class="text-xs text-slate-500">Vui lòng nhập mã PIN bảo vệ để truy cập hệ thống</p>
+      </div>
+
+      <form onsubmit="handleAccessGateSubmit(event)" class="space-y-4">
+        <div id="gateBranchSelectorWrap" class="hidden">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Cơ sở truy cập</label>
+          <select id="gateBranchSelect" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-bold text-mindful-green bg-slate-50"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1 text-center">Nhập Mã PIN Truy Cập</label>
+          <input type="password" id="gatePinInput" required maxlength="8" inputmode="numeric" placeholder="••••" class="w-full text-center tracking-[0.5em] text-2xl font-extrabold rounded-2xl border-2 border-mindful-green/30 py-3 focus:outline-none focus:border-mindful-green" />
+          <p id="gateHintText" class="text-[11px] text-center text-slate-400 mt-1.5">Nhập mã PIN do Phòng HC-NS cấp.</p>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-2xl bg-mindful-green hover:bg-mindful-greenLight text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-unlock-keyhole text-mindful-gold"></i>
+          <span>Mở Khóa &amp; Vào Hệ Thống</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODALS (SIGNATURE PAD, PIN VERIFICATION, POLICY, GOOGLE SHEETS CONFIG)  -->
+  <!-- ======================================================================= -->
+
+  <!-- 1. Signature Pad Modal -->
+  <div id="signatureModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-mindful-green text-base flex items-center gap-2">
+          <i class="fa-solid fa-pen-nib text-mindful-gold"></i>
+          <span>Chữ Ký Xác Nhận Người Sử Dụng</span>
+        </h3>
+        <button onclick="closeSignatureModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500">Người sử dụng ký trực tiếp bằng ngón tay hoặc chuột vào khung bên dưới để xác nhận lượt dùng ưu đãi/FOC:</p>
+      <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden touch-none">
+        <canvas id="signatureCanvas" class="w-full h-44 block cursor-crosshair"></canvas>
+      </div>
+      <div class="flex items-center justify-between gap-2 pt-1">
+        <button type="button" onclick="clearSignatureCanvas()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+          Xóa ký lại
+        </button>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeSignatureModal()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold">
+            Hủy
+          </button>
+          <button type="button" onclick="confirmSignature()" class="px-4 py-2 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white text-xs font-bold">
+            Xác Nhận Chữ Ký
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. PIN Verification Modal -->
+  <div id="pinModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-mindful-green text-base flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-mindful-gold"></i>
+          <span>Xác Thực Nhanh Bằng Mã PIN</span>
+        </h3>
+        <button onclick="closePinModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-600">
+        Nhập <strong>4 số cuối số điện thoại</strong> của người sử dụng đã đăng ký với Phòng HC-NS để đóng dấu xác nhận điện tử:
+      </p>
+      <div>
+        <input type="password" id="pinInputField" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full text-center tracking-[0.6em] text-2xl font-extrabold rounded-xl border border-slate-300 py-3 focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closePinModal()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold">Hủy</button>
+        <button type="button" onclick="confirmPinVerification()" class="px-4 py-2 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white text-xs font-bold">Xác Nhận PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Policy Reference Modal (QĐ 01/QĐ-MM) -->
+  <div id="policyModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div>
+          <span class="text-[11px] font-bold uppercase text-mindful-bronze">Quyết định số 01/QĐ-MM ngày 15/07/2026 (hiệu lực 04/08/2026)</span>
+          <h3 class="font-bold text-mindful-green text-lg">Quy Trình Thực Hiện Chính Sách Ưu Đãi Nội Bộ &amp; FOC</h3>
+        </div>
+        <button onclick="closePolicyModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm text-slate-700">
+        <div class="p-3.5 rounded-xl bg-mindful-greenTint border border-mindful-green/20">
+          <h4 class="font-bold text-mindful-green">1. Mã EMP15 – Ưu đãi Người lao động (Giảm 15% đồ ăn)</h4>
+          <p class="mt-1">Áp dụng cho toàn thể Người lao động sử dụng dịch vụ tại nhà hàng <strong>ngoài khung giờ làm việc</strong>. Giảm 15% (chỉ đồ ăn) trên 01 hóa đơn.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-mindful-goldLight border border-mindful-gold/40">
+          <h4 class="font-bold text-mindful-bronze">2. Mã MGRCREDIT – Điểm phúc lợi Quản lý (01 điểm = 1.000đ)</h4>
+          <ul class="list-disc pl-5 mt-1 space-y-1">
+            <li><strong>Quản lý Nhà hàng:</strong> 1.000.000 đ/tháng</li>
+            <li><strong>Ban Điều hành:</strong> 5.000.000 đ/người/tháng</li>
+            <li><strong>Tổng Giám đốc / CEO:</strong> 10.000.000 đ/tháng</li>
+            <li>Không cộng dồn sang tháng sau. Nếu hóa đơn vượt hạn mức, người sử dụng thanh toán phần vượt ngay tại nhà hàng.</li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <h4 class="font-bold text-slate-900">3. Mã FOC-OTH – Phê duyệt FOC xử lý công việc (Tiếp khách / Đối ngoại)</h4>
+          <ul class="list-disc pl-5 mt-1 space-y-1">
+            <li><strong>Giảm đến 10%:</strong> Quản lý Nhà hàng tự phê duyệt.</li>
+            <li><strong>Trên 10% đến 15%:</strong> Giám đốc Vận hành phê duyệt.</li>
+            <li><strong>Trên 15%:</strong> Tổng Giám đốc / CEO phê duyệt.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closePolicyModal()" class="px-5 py-2 rounded-xl bg-mindful-green text-white text-xs font-bold">Đã Hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Google Sheets Cloud Config & Apps Script Setup Modal -->
+  <div id="cloudConfigModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div>
+          <span class="text-[11px] font-bold uppercase text-emerald-700">Real-Time Cloud Database</span>
+          <h3 class="font-bold text-mindful-green text-lg">Kết Nối Google Sheets (Qua Google Apps Script)</h3>
+        </div>
+        <button onclick="closeCloudConfigModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm text-slate-700">
+        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1.5">
+          <p class="font-bold"><i class="fa-solid fa-bolt text-emerald-600 mr-1.5"></i>Cách hoạt động Real-Time để Anh kiểm tra đột xuất:</p>
+          <p class="text-xs">Mỗi khi Thu ngân lưu bill FOC hoặc Quản lý chốt cơm ca tại nhà hàng, dữ liệu tự động bắn thẳng vào file Google Sheets của Phòng HC-NS. Anh mở web này ở bất kỳ đâu hoặc mở trực tiếp Google Sheets đều thấy ngay lập tức.</p>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">1. Đường dẫn Web App URL (Google Apps Script) *</label>
+            <input type="url" id="cloudWebAppUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. Mã bảo mật nội bộ (API Secret Key)</label>
+            <input type="text" id="cloudApiSecretInput" placeholder="Chuỗi bí mật tự đặt, tối thiểu 8 ký tự" class="w-full sm:w-64 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <button type="button" onclick="disconnectCloud()" class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
+            Ngắt kết nối (Dùng Offline)
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="saveCloudConfig()" class="px-5 py-2.5 rounded-xl bg-mindful-green hover:bg-mindful-greenLight text-white text-xs font-bold shadow-sm">
+              <i class="fa-solid fa-plug-circle-check mr-1.5"></i>Lưu &amp; Kết Nối Ngay
+            </button>
+          </div>
+        </div>
+
+        <!-- Step-by-step Apps Script Code Box -->
+        <div class="border-t border-slate-200 pt-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-mindful-green">Hướng dẫn cài đặt 1 lần trên Google Sheets (Tự tạo đủ 4 sheet + Phân quyền Chi nhánh):</span>
+            <button type="button" onclick="copyAppsScriptCode()" class="px-3 py-1.5 rounded-lg bg-mindful-gold text-mindful-green hover:bg-mindful-bronze hover:text-white text-xs font-bold transition">
+              <i class="fa-regular fa-copy mr-1"></i>Copy mã Apps Script
+            </button>
+          </div>
+          <ol class="list-decimal pl-5 text-xs text-slate-600 space-y-1">
+            <li>Tạo 1 file <strong>Google Sheets</strong> mới trên Google Drive của công ty.</li>
+            <li>Trên menu Google Sheets chọn <strong>Tiện ích mở rộng (Extensions) &rarr; Apps Script</strong>.</li>
+            <li>Xóa hết mã mặc định, dán đoạn mã bên dưới vào và bấm <strong>Lưu (Ctrl+S)</strong>.</li>
+            <li>Vào <strong>Cài đặt dự án (Project Settings) &rarr; Thuộc tính tập lệnh (Script properties)</strong>, thêm 2 thuộc tính: <code>API_SECRET</code> (chuỗi bí mật tự đặt, dán cùng chuỗi vào ô số 2) và <code>ADMIN_PIN</code> (trùng PIN Admin trong tool).</li>
+            <li>Bấm <strong>Triển khai (Deploy) &rarr; Tùy chọn triển khai mới (New deployment)</strong> &rarr; Chọn loại <strong>Ứng dụng web (Web app)</strong> &rarr; Mục <em>Người có quyền truy cập</em> chọn <strong>Bất kỳ ai (Anyone)</strong> &rarr; Bấm <strong>Triển khai</strong> và copy đường link <code>.../exec</code> dán lên ô số 1 ở trên.</li>
+          </ol>
+          <textarea id="appsScriptCodeBox" readonly rows="8" class="w-full rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] p-3 leading-relaxed focus:outline-none"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="no-print fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ======================================================================= -->
+  <!-- HIDDEN PRINT TEMPLATE: EXACT BM-01/QT-FOC OFFICIAL LAYOUT               -->
+  <!-- ======================================================================= -->
+  <div id="printAreaBM01" class="hidden"></div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC (JAVASCRIPT)                                          -->
+  <!-- ======================================================================= -->
+  <script>
+    // =========================================================================
+    // 1. STATE, CLOUD CONFIG & DEFAULT DATA (MINDFUL HOLDINGS / ISSHO IZAKAYA)
+    // =========================================================================
+    const STORAGE_KEY = 'mindful_holdings_benefits_v4';
+    const CLOUD_CONFIG_KEY = 'mindful_holdings_cloud_cfg_v1';
+    const AUTH_SESSION_KEY = 'mindful_holdings_auth_session_v1';
+
+    const APPS_SCRIPT_TEMPLATE = [
+      '// ============================================================================',
+      '// GOOGLE APPS SCRIPT WEB APP API - EMPLOYEE BENEFITS (MINDFUL HOLDINGS)',
+      '// Tự động khởi tạo 4 sheets + Bảo mật phân quyền theo Chi nhánh & Mã PIN',
+      '// Đặt API_SECRET và ADMIN_PIN trong Project Settings > Script properties (không ghi cứng vào code)',
+      '// ============================================================================',
+      'const PROPS = PropertiesService.getScriptProperties();',
+      'const API_SECRET = PROPS.getProperty("API_SECRET") || "";',
+      'const DEFAULT_ADMIN_PIN = PROPS.getProperty("ADMIN_PIN") || "";',
+      '',
+      'function setupSheets() {',
+      '  const ss = SpreadsheetApp.getActiveSpreadsheet();',
+      '  const schemas = {',
+      '    "FOC_Logs": ["ID", "Restaurant_ID", "Restaurant_Name", "Usage_Date", "Staff_ID", "Staff_Name_Title", "Benefit_Type", "Bill_Code", "Bill_Amount", "Discount_Amount", "Extra_Amount", "Verification_Type", "Verification_Data", "Verified_At", "Cashier_Name", "Note", "Updated_At"],',
+      '    "Staff_Meals": ["Record_Key", "Date", "Restaurant_ID", "Restaurant_Name", "Staff_ID", "Staff_Name", "Shift_1", "Shift_2", "Shift_OT", "Total_Meals", "Note", "Updated_At"],',
+      '    "Employees": ["ID", "Code", "Name", "Phone", "Role", "Monthly_Quota", "Restaurant_ID", "Unit"],',
+      '    "Restaurants": ["ID", "Name", "Access_PIN"]',
+      '  };',
+      '  Object.keys(schemas).forEach(function(name) {',
+      '    let sheet = ss.getSheetByName(name);',
+      '    if (!sheet) {',
+      '      sheet = ss.insertSheet(name);',
+      '      sheet.appendRow(schemas[name]);',
+      '      sheet.getRange(1, 1, 1, schemas[name].length).setFontWeight("bold").setBackground("#12372A").setFontColor("#FFFFFF");',
+      '      sheet.setFrozenRows(1);',
+      '    } else if (name === "Employees" && String(sheet.getRange(1, 8).getValue()) === "") {',
+      '      sheet.getRange(1, 8).setValue("Unit").setFontWeight("bold").setBackground("#12372A").setFontColor("#FFFFFF");',
+      '    }',
+      '  });',
+      '  return ss;',
+      '}',
+      '',
+      'function verifyBranchAccess(ss, branchId, pin) {',
+      '  if (!branchId || branchId === "ALL") {',
+      '    return !!DEFAULT_ADMIN_PIN && String(pin) === String(DEFAULT_ADMIN_PIN);',
+      '  }',
+      '  const restaurants = readSheetObjects(ss.getSheetByName("Restaurants"));',
+      '  const found = restaurants.find(function(r) { return String(r.ID) === String(branchId); });',
+      '  if (!found) return false;',
+      '  return String(found.Access_PIN || "") === String(pin);',
+      '}',
+      '',
+      'function doGet(e) {',
+      '  const params = (e && e.parameter) || {};',
+      '  const secret = params.secret || "";',
+      '  if (!API_SECRET || secret !== API_SECRET) {',
+      '    return jsonResponse({ status: "error", message: "Sai mã bảo mật API_SECRET" });',
+      '  }',
+      '  const ss = setupSheets();',
+      '  const branchId = params.branch || "ALL";',
+      '  const pin = params.pin || "";',
+      '  if (!verifyBranchAccess(ss, branchId, pin)) {',
+      '    return jsonResponse({ status: "error", message: "Sai mã PIN truy cập cơ sở!" });',
+      '  }',
+      '  let restaurants = readSheetObjects(ss.getSheetByName("Restaurants"));',
+      '  let focLogs = readSheetObjects(ss.getSheetByName("FOC_Logs"));',
+      '  let staffMeals = readSheetObjects(ss.getSheetByName("Staff_Meals"));',
+      '  let employees = readSheetObjects(ss.getSheetByName("Employees"));',
+      '  if (branchId && branchId !== "ALL") {',
+      '    restaurants = restaurants.filter(function(r) { return String(r.ID) === String(branchId); });',
+      '    const ym = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "yyyy-MM");',
+      '    focLogs = focLogs.filter(function(r) {',
+      '      if (String(r.Restaurant_ID) === String(branchId)) return true;',
+      '      const d = r.Usage_Date;',
+      '      const rym = (d instanceof Date) ? Utilities.formatDate(d, "Asia/Ho_Chi_Minh", "yyyy-MM") : String(d).slice(0, 7);',
+      '      return String(r.Benefit_Type) === "MGRCREDIT" && rym === ym;',
+      '    });',
+      '    staffMeals = staffMeals.filter(function(r) { return String(r.Restaurant_ID) === String(branchId); });',
+      '    employees = employees.map(function(r) { r.Phone = ""; return r; });',
+      '  }',
+      '  return jsonResponse({',
+      '    status: "ok",',
+      '    syncedAt: new Date().toISOString(),',
+      '    restaurants: restaurants,',
+      '    employees: employees,',
+      '    focLogs: focLogs,',
+      '    staffMeals: staffMeals',
+      '  });',
+      '}',
+      '',
+      'function doPost(e) {',
+      '  try {',
+      '    const payload = JSON.parse(e.postData.contents);',
+      '    if (!API_SECRET || payload.secret !== API_SECRET) {',
+      '      return jsonResponse({ status: "error", message: "Sai mã bảo mật API_SECRET" });',
+      '    }',
+      '    const ss = setupSheets();',
+      '    const action = payload.action;',
+      '    const branch = payload.branch || "ALL";',
+      '    if (!verifyBranchAccess(ss, branch, payload.pin || "")) return jsonResponse({ status: "error", message: "Sai mã PIN truy cập" });',
+      '    if (branch !== "ALL") {',
+      '      if (action === "push_all" || action === "sync_master") return jsonResponse({ status: "error", message: "Chỉ Admin được đồng bộ danh mục" });',
+      '      if (action === "upsert_foc" && String(payload.row[1]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
+      '      if (action === "upsert_meal" && String(payload.row[2]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
+      '    }',
+      '',
+      '    if (action === "upsert_foc") {',
+      '      upsertRow(ss.getSheetByName("FOC_Logs"), 0, payload.row);',
+      '    } else if (action === "delete_foc") {',
+      '      deleteRowById(ss.getSheetByName("FOC_Logs"), 0, payload.id);',
+      '    } else if (action === "upsert_meal") {',
+      '      upsertRow(ss.getSheetByName("Staff_Meals"), 0, payload.row);',
+      '    } else if (action === "bulk_meals") {',
+      '      const sheet = ss.getSheetByName("Staff_Meals");',
+      '      (payload.rows || []).forEach(function(r) { upsertRow(sheet, 0, r); });',
+      '    } else if (action === "sync_master") {',
+      '      if (payload.restaurants) replaceAllRows(ss.getSheetByName("Restaurants"), payload.restaurants);',
+      '      if (payload.employees) replaceAllRows(ss.getSheetByName("Employees"), payload.employees);',
+      '    } else if (action === "push_all") {',
+      '      if (payload.restaurants) replaceAllRows(ss.getSheetByName("Restaurants"), payload.restaurants);',
+      '      if (payload.employees) replaceAllRows(ss.getSheetByName("Employees"), payload.employees);',
+      '      if (payload.focRows) replaceAllRows(ss.getSheetByName("FOC_Logs"), payload.focRows);',
+      '      if (payload.mealRows) replaceAllRows(ss.getSheetByName("Staff_Meals"), payload.mealRows);',
+      '    }',
+      '    return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });',
+      '  } catch (err) {',
+      '    return jsonResponse({ status: "error", message: err.toString() });',
+      '  }',
+      '}',
+      '',
+      'function upsertRow(sheet, keyColIndex, rowValues) {',
+      '  const data = sheet.getDataRange().getValues();',
+      '  const targetKey = String(rowValues[keyColIndex]);',
+      '  for (let i = 1; i < data.length; i++) {',
+      '    if (String(data[i][keyColIndex]) === targetKey) {',
+      '      sheet.getRange(i + 1, 1, 1, rowValues.length).setValues([rowValues]);',
+      '      return;',
+      '    }',
+      '  }',
+      '  sheet.appendRow(rowValues);',
+      '}',
+      '',
+      'function deleteRowById(sheet, keyColIndex, idValue) {',
+      '  const data = sheet.getDataRange().getValues();',
+      '  for (let i = data.length - 1; i >= 1; i--) {',
+      '    if (String(data[i][keyColIndex]) === String(idValue)) {',
+      '      sheet.deleteRow(i + 1);',
+      '    }',
+      '  }',
+      '}',
+      '',
+      'function replaceAllRows(sheet, rows) {',
+      '  const lastRow = sheet.getLastRow();',
+      '  if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);',
+      '  if (rows && rows.length > 0) {',
+      '    sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);',
+      '  }',
+      '}',
+      '',
+      'function readSheetObjects(sheet) {',
+      '  const values = sheet.getDataRange().getValues();',
+      '  if (values.length <= 1) return [];',
+      '  const headers = values[0];',
+      '  return values.slice(1).map(function(row) {',
+      '    const obj = {};',
+      '    headers.forEach(function(h, idx) { obj[h] = row[idx]; });',
+      '    return obj;',
+      '  });',
+      '}',
+      '',
+      'function jsonResponse(obj) {',
+      '  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);',
+      '}'
+    ].join('\n');
+
+    const rndPin = () => String(Math.floor(100000 + Math.random() * 900000));
+    const DEFAULT_DATA = {
+      adminPin: '',
+      restaurants: [
+        { id: 'rest_issho_01', name: 'ISSHO - 01 Núi Thành', pin: rndPin() },
+        { id: 'rest_meo_02', name: 'Mèo Thèm Cá - 327 Hồ Nghinh', pin: rndPin() }
+      ],
+      employees: [],
+      focLogs: [],
+      staffMeals: {}
+    };
+
+    let appState = loadAppState();
+    let cloudConfig = loadCloudConfig();
+    let authSession = { isAuthenticated: false, role: 'admin', lockedBranchId: null, pin: '' };
+    let currentPendingSignature = null;
+    let sigCanvas, sigCtx, isDrawingSig = false;
+
+    function normalizeAppState(raw) {
+      const state = raw && typeof raw === 'object' ? raw : {};
+      const defaultRestMap = {};
+      DEFAULT_DATA.restaurants.forEach(r => { defaultRestMap[r.id] = r; });
+
+      const restaurants = Array.isArray(state.restaurants) && state.restaurants.length > 0
+        ? state.restaurants.map((r, idx) => ({
+            id: String(r.id || r.ID || `rest_${idx + 1}`),
+            name: String(r.name || r.Name || `Nhà hàng ${idx + 1}`),
+            pin: String(r.pin || r.Access_PIN || (defaultRestMap[r.id]?.pin) || rndPin())
+          }))
+        : JSON.parse(JSON.stringify(DEFAULT_DATA.restaurants));
+
+      const employees = Array.isArray(state.employees) && state.employees.length > 0
+        ? state.employees.map((e, idx) => ({
+            id: String(e.id || e.ID || `emp_${idx + 1}`),
+            code: String(e.code || e.Code || `MM${String(idx + 1).padStart(3, '0')}`),
+            name: String(e.name || e.Name || ''),
+            phone: String(e.phone || e.Phone || ''),
+            role: String(e.role || e.Role || 'Nhân viên'),
+            monthlyQuota: Number(e.monthlyQuota ?? e.Monthly_Quota ?? 0) || 0,
+            restaurantId: String(e.restaurantId ?? e.Restaurant_ID ?? ''),
+            unit: String(e.unit || e.Unit || '')
+          })).filter(e => !/[\uFFFD\u0000-\u0008]/.test(e.code + e.name + e.role + e.phone))
+        : JSON.parse(JSON.stringify(DEFAULT_DATA.employees));
+
+      const focLogs = Array.isArray(state.focLogs)
+        ? state.focLogs.map((l, idx) => ({
+            id: String(l.id || l.ID || `foc_${idx + 1}`),
+            restaurantId: String(l.restaurantId || l.Restaurant_ID || restaurants[0].id),
+            date: normalizeDateString(l.date || l.Usage_Date || formatDateISO(new Date())),
+            staffId: String(l.staffId || l.Staff_ID || ''),
+            staffNameTitle: String(l.staffNameTitle || l.Staff_Name_Title || ''),
+            type: String(l.type || l.Benefit_Type || 'EMP15'),
+            billCode: String(l.billCode || l.Bill_Code || ''),
+            billAmount: Number(l.billAmount ?? l.Bill_Amount ?? 0) || 0,
+            discountAmount: Number(l.discountAmount ?? l.Discount_Amount ?? 0) || 0,
+            extraAmount: Number(l.extraAmount ?? l.Extra_Amount ?? 0) || 0,
+            verificationType: String(l.verificationType || l.Verification_Type || ''),
+            verificationData: String(l.verificationData || l.Verification_Data || ''),
+            verifiedAt: String(l.verifiedAt || l.Verified_At || ''),
+            cashier: String(l.cashier || l.Cashier_Name || ''),
+            note: String(l.note || l.Note || '')
+          }))
+        : JSON.parse(JSON.stringify(DEFAULT_DATA.focLogs));
+
+      const staffMeals = state.staffMeals && typeof state.staffMeals === 'object' ? state.staffMeals : {};
+
+      return {
+        adminPin: String(state.adminPin || ''),
+        restaurants,
+        employees,
+        focLogs,
+        staffMeals
+      };
+    }
+
+    function normalizeDateString(val) {
+      if (!val) return formatDateISO(new Date());
+      const str = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) return formatDateISO(d);
+      return formatDateISO(new Date());
+    }
+
+    function loadAppState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const normalized = normalizeAppState(parsed);
+          return normalized;
+        }
+      } catch (e) {
+        console.warn('Resetting corrupted local state:', e);
+      }
+      const fresh = normalizeAppState(DEFAULT_DATA);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh)); // lưu ngay để PIN nhà hàng sinh ngẫu nhiên không đổi mỗi lần mở
+      return fresh;
+    }
+
+    function saveAppState() {
+      appState = normalizeAppState(appState);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function resetToSampleData() {
+      if (authSession.role !== 'admin' || !confirm('XÓA SẠCH toàn bộ dữ liệu trên thiết bị này (không ảnh hưởng Google Sheets)? Hãy Sao lưu JSON trước. Không thể hoàn tác.')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      appState = normalizeAppState(DEFAULT_DATA);
+      saveAppState();
+      applyBranchLockUI();
+      showToast('Đã xóa sạch dữ liệu trên thiết bị này.', 'info');
+    }
+
+    // =========================================================================
+    // 1B. BRANCH-LOCKED URL & PIN ACCESS CONTROL
+    // =========================================================================
+    function getRequestedBranchFromURL() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const branch = params.get('branch');
+        return branch && branch.trim() !== '' ? branch.trim() : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function initBranchAccessControl() {
+      const requestedBranch = getRequestedBranchFromURL();
+      const savedRaw = sessionStorage.getItem(AUTH_SESSION_KEY);
+
+      if (savedRaw) {
+        try {
+          const parsed = JSON.parse(savedRaw);
+          if (parsed && parsed.isAuthenticated) {
+            if (!requestedBranch || parsed.lockedBranchId === requestedBranch) {
+              authSession = parsed;
+              applyBranchLockUI();
+              if (cloudConfig.webAppUrl) syncFromGoogleSheets(false);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      openAccessGate(requestedBranch);
+    }
+
+    function openAccessGate(requestedBranchId) {
+      const modal = document.getElementById('accessGateModal');
+      const badge = document.getElementById('gateBranchBadge');
+      const desc = document.getElementById('gateDescription');
+      const hint = document.getElementById('gateHintText');
+      const branchWrap = document.getElementById('gateBranchSelectorWrap');
+      const branchSel = document.getElementById('gateBranchSelect');
+
+      document.getElementById('gatePinInput').value = '';
+
+      if (requestedBranchId) {
+        const rest = appState.restaurants.find(r => r.id === requestedBranchId);
+        const restLabel = rest ? rest.name : requestedBranchId;
+        badge.textContent = `Cơ sở khóa cứng: ${restLabel}`;
+        desc.textContent = 'Đường link này chỉ cấp quyền thao tác và xem dữ liệu của cơ sở trên.';
+        hint.textContent = 'Nhập mã PIN cơ sở do Phòng HC-NS cấp.';
+        branchWrap.classList.remove('hidden');
+        branchSel.innerHTML = `<option value="${escapeHTML(requestedBranchId)}">${escapeHTML(restLabel)}</option>`;
+        branchSel.disabled = true;
+      } else {
+        badge.textContent = 'Cổng Quản Trị Toàn Chuỗi (Admin HC-NS)';
+        desc.textContent = 'Nhập mã PIN Admin để kiểm tra toàn chuỗi hoặc chọn cơ sở';
+        hint.textContent = appState.adminPin ? 'Nhập mã PIN Admin HC-NS.' : 'LẦN ĐẦU SỬ DỤNG: nhập mã PIN Admin mới (6-8 chữ số) để thiết lập.';
+        branchWrap.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('gatePinInput').focus(), 100);
+    }
+
+    const MAX_BACKDATE_DAYS = 3; // Tài khoản nhà hàng chỉ được nhập/sửa lùi tối đa N ngày
+    function gateFail(msg) {
+      const n = Number(sessionStorage.getItem('gate_fail') || 0) + 1;
+      if (n >= 5) { sessionStorage.setItem('gate_lock', String(Date.now() + 5 * 60000)); sessionStorage.setItem('gate_fail', '0'); msg = 'Sai quá 5 lần, khóa 5 phút.'; }
+      else sessionStorage.setItem('gate_fail', String(n));
+      showToast(msg, 'error');
+    }
+    function dateAllowed(iso) {
+      const t = formatDateISO(new Date());
+      if (iso > t) return false;
+      if (authSession.role !== 'branch') return true;
+      return iso >= formatDateISO(new Date(Date.now() - MAX_BACKDATE_DAYS * 86400000));
+    }
+    function visibleEmployees() {
+      const b = authSession.role === 'branch' && authSession.lockedBranchId;
+      return appState.employees; // danh sách thụ hưởng dùng chung toàn chuỗi
+    }
+    function handleAccessGateSubmit(e) {
+      e.preventDefault();
+      if (Date.now() < Number(sessionStorage.getItem('gate_lock') || 0)) { showToast('Đang bị khóa do nhập sai nhiều lần, thử lại sau ít phút.', 'error'); return; }
+      const enteredPin = document.getElementById('gatePinInput').value.trim();
+      const requestedBranch = getRequestedBranchFromURL();
+
+      if (requestedBranch) {
+        const rest = appState.restaurants.find(r => r.id === requestedBranch);
+        const expectedPin = rest ? String(rest.pin || '') : '';
+        if ((expectedPin && enteredPin === expectedPin) || (appState.adminPin && enteredPin === String(appState.adminPin))) {
+          authSession = {
+            isAuthenticated: true,
+            role: 'branch',
+            lockedBranchId: requestedBranch,
+            pin: enteredPin
+          };
+          sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authSession));
+          document.getElementById('accessGateModal').classList.add('hidden');
+          applyBranchLockUI();
+          if (cloudConfig.webAppUrl) syncFromGoogleSheets(false);
+          showToast(`Đã mở khóa cơ sở: ${rest ? rest.name : requestedBranch}`, 'success');
+        } else {
+          gateFail('Sai mã PIN truy cập của nhà hàng này!');
+        }
+      } else {
+        if (!appState.adminPin) {
+          if (!/^\d{6,8}$/.test(enteredPin)) { gateFail('Thiết lập lần đầu: PIN Admin phải gồm 6-8 chữ số!'); return; }
+          appState.adminPin = enteredPin; saveAppState();
+        }
+        if (enteredPin === String(appState.adminPin)) {
+          if (['999999','111111','000000','123456','9999','1111','1234'].includes(enteredPin)) showToast('PIN Admin quá dễ đoán, hãy đổi ngay trong tab HR Audit!', 'error');
+          authSession = {
+            isAuthenticated: true,
+            role: 'admin',
+            lockedBranchId: null,
+            pin: enteredPin
+          };
+          sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authSession));
+          document.getElementById('accessGateModal').classList.add('hidden');
+          applyBranchLockUI();
+          if (cloudConfig.webAppUrl) syncFromGoogleSheets(false);
+          showToast('Đã đăng nhập quyền Admin HC-NS (Toàn chuỗi)!', 'success');
+        } else {
+          const matchedRest = appState.restaurants.find(r => String(r.pin) === enteredPin);
+          if (matchedRest) {
+            authSession = {
+              isAuthenticated: true,
+              role: 'branch',
+              lockedBranchId: matchedRest.id,
+              pin: enteredPin
+            };
+            sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authSession));
+            document.getElementById('accessGateModal').classList.add('hidden');
+            applyBranchLockUI();
+            if (cloudConfig.webAppUrl) syncFromGoogleSheets(false);
+            showToast(`Đã đăng nhập quyền cơ sở: ${matchedRest.name}`, 'success');
+          } else {
+            gateFail('Mã PIN không hợp lệ!');
+          }
+        }
+      }
+    }
+
+    function logoutSession() {
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      authSession = { isAuthenticated: false, role: 'admin', lockedBranchId: null, pin: '' };
+      openAccessGate(getRequestedBranchFromURL());
+    }
+
+    function applyBranchLockUI() {
+      const isBranchLocked = authSession.role === 'branch' && authSession.lockedBranchId;
+      const roleText = document.getElementById('roleModeText');
+      const focSel = document.getElementById('focRestaurantSelect');
+      const mealSel = document.getElementById('mealRestaurantSelect');
+      const auditSel = document.getElementById('auditRestaurantFilter');
+      const mealScopeSel = document.getElementById('mealStatsScope');
+      const quickAddBtn = document.getElementById('focQuickAddRestBtn');
+      const hrRestCard = document.getElementById('hrRestaurantManageCard');
+      const hrAddStaffForm = document.getElementById('hrAddStaffForm');
+
+      populateRestaurantDropdowns();
+
+      if (isBranchLocked) {
+        const branchId = authSession.lockedBranchId;
+        const rest = appState.restaurants.find(r => r.id === branchId);
+        roleText.textContent = rest ? rest.name : branchId;
+
+        [focSel, mealSel, auditSel].forEach(sel => {
+          if (!sel) return;
+          sel.value = branchId;
+          sel.disabled = true;
+        });
+
+        if (mealScopeSel) {
+          mealScopeSel.value = 'selected';
+          mealScopeSel.disabled = true;
+        }
+        if (quickAddBtn) quickAddBtn.classList.add('hidden');
+        if (hrRestCard) hrRestCard.classList.add('hidden');
+        if (hrAddStaffForm) hrAddStaffForm.classList.add('hidden');
+        ['hrImportLabel', 'hrBackupCard'].forEach(i => document.getElementById(i)?.classList.add('hidden'));
+      } else {
+        roleText.textContent = 'Admin HC-NS (Toàn chuỗi)';
+        [focSel, mealSel, auditSel, mealScopeSel].forEach(sel => {
+          if (sel) sel.disabled = false;
+        });
+        if (quickAddBtn) quickAddBtn.classList.remove('hidden');
+        if (hrRestCard) hrRestCard.classList.remove('hidden');
+        if (hrAddStaffForm) hrAddStaffForm.classList.remove('hidden');
+        ['hrImportLabel', 'hrBackupCard'].forEach(i => document.getElementById(i)?.classList.remove('hidden'));
+      }
+
+      renderFOCTable();
+      renderMealSection();
+      renderHRSection();
+    }
+
+    function getBranchShareLink(branchId) {
+      const baseUrl = window.location.href.split('?')[0].split('#')[0];
+      return `${baseUrl}?branch=${encodeURIComponent(branchId)}`;
+    }
+
+    function copyBranchLink(branchId) {
+      const link = getBranchShareLink(branchId);
+      const tempInput = document.createElement('input');
+      tempInput.value = link;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      const rest = appState.restaurants.find(r => r.id === branchId);
+      showToast(`Đã copy link riêng cho "${rest ? rest.name : branchId}" (PIN: ${rest ? rest.pin : ''})!`, 'success');
+    }
+
+    function updateAdminMasterPin() {
+      const val = document.getElementById('adminMasterPinInput').value.trim();
+      if (!/^\d{6,8}$/.test(val)) {
+        showToast('Mã PIN Admin phải gồm 6-8 chữ số!', 'error');
+        return;
+      }
+      appState.adminPin = val;
+      saveAppState();
+      showToast('Đã đổi PIN Admin. Nhớ cập nhật ADMIN_PIN trong Script properties của Apps Script cho trùng!', 'success');
+    }
+
+    // =========================================================================
+    // 2. GOOGLE SHEETS (APPS SCRIPT) TWO-WAY SYNC ENGINE
+    // =========================================================================
+    function loadCloudConfig() {
+      try {
+        const saved = localStorage.getItem(CLOUD_CONFIG_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return { webAppUrl: '', apiSecret: '', lastSync: null };
+    }
+
+    function saveCloudConfigToStorage() {
+      localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+    }
+
+    function updateCloudStatusUI(isSyncing = false) {
+      const dot = document.getElementById('cloudStatusDot');
+      const label = document.getElementById('cloudStatusLabel');
+      const syncIcon = document.getElementById('quickSyncIcon');
+
+      if (isSyncing) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping';
+        label.textContent = 'Đang đồng bộ...';
+        if (syncIcon) syncIcon.classList.add('fa-spin');
+        return;
+      }
+
+      if (syncIcon) syncIcon.classList.remove('fa-spin');
+
+      if (cloudConfig && cloudConfig.webAppUrl) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+        label.textContent = 'Google Sheets Live';
+      } else {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400';
+        label.textContent = 'Offline Mode';
+      }
+    }
+
+    function openCloudConfigModal() {
+      document.getElementById('cloudWebAppUrlInput').value = cloudConfig.webAppUrl || '';
+      document.getElementById('cloudApiSecretInput').value = cloudConfig.apiSecret || '';
+      document.getElementById('appsScriptCodeBox').value = APPS_SCRIPT_TEMPLATE;
+      document.getElementById('cloudConfigModal').classList.remove('hidden');
+    }
+
+    function closeCloudConfigModal() {
+      document.getElementById('cloudConfigModal').classList.add('hidden');
+    }
+
+    function copyAppsScriptCode() {
+      const box = document.getElementById('appsScriptCodeBox');
+      box.select();
+      document.execCommand('copy');
+      showToast('Đã copy mã Google Apps Script chuẩn vào bộ nhớ tạm!', 'success');
+    }
+
+    async function saveCloudConfig() {
+      const url = document.getElementById('cloudWebAppUrlInput').value.trim();
+      const secret = document.getElementById('cloudApiSecretInput').value.trim();
+      if (secret.length < 8) { showToast('Mã bảo mật API phải tối thiểu 8 ký tự (trùng API_SECRET trong Script properties).', 'error'); return; }
+      if (!url || !url.startsWith('https://script.google.com/')) {
+        showToast('Vui lòng dán đúng đường dẫn Web App URL của Google Apps Script (bắt đầu bằng https://script.google.com/...)', 'error');
+        return;
+      }
+      cloudConfig.webAppUrl = url;
+      cloudConfig.apiSecret = secret;
+      saveCloudConfigToStorage();
+      closeCloudConfigModal();
+      updateCloudStatusUI(false);
+      await syncFromGoogleSheets(true);
+    }
+
+    function disconnectCloud() {
+      cloudConfig.webAppUrl = '';
+      saveCloudConfigToStorage();
+      updateCloudStatusUI(false);
+      closeCloudConfigModal();
+      showToast('Đã chuyển sang chế độ Offline lưu cục bộ.', 'info');
+    }
+
+    async function syncFromGoogleSheets(showNotification = false) {
+      if (!cloudConfig || !cloudConfig.webAppUrl) {
+        if (showNotification) {
+          openCloudConfigModal();
+          showToast('Anh vui lòng dán link Google Apps Script để bật đồng bộ Real-Time!', 'info');
+        }
+        return;
+      }
+
+      updateCloudStatusUI(true);
+      try {
+        const sep = cloudConfig.webAppUrl.includes('?') ? '&' : '?';
+        const branchParam = authSession.role === 'branch' && authSession.lockedBranchId ? authSession.lockedBranchId : 'ALL';
+        const pinParam = authSession.pin || '';
+        const fetchUrl = `${cloudConfig.webAppUrl}${sep}secret=${encodeURIComponent(cloudConfig.apiSecret || '')}&branch=${encodeURIComponent(branchParam)}&pin=${encodeURIComponent(pinParam)}&t=${Date.now()}`;
+        const response = await fetch(fetchUrl);
+        const data = await response.json();
+
+        if (data.status !== 'ok') {
+          throw new Error(data.message || 'Lỗi phản hồi từ Google Apps Script');
+        }
+
+        if (Array.isArray(data.restaurants) && data.restaurants.length > 0) {
+          const syncedRests = data.restaurants.map(r => ({
+            id: String(r.ID || r.id),
+            name: String(r.Name || r.name),
+            pin: String(r.Access_PIN || r.pin || '')
+          }));
+          if (authSession.role === 'branch' && authSession.lockedBranchId) {
+            syncedRests.forEach(sr => {
+              const idx = appState.restaurants.findIndex(lr => lr.id === sr.id);
+              if (idx >= 0) appState.restaurants[idx] = sr;
+              else appState.restaurants.push(sr);
+            });
+          } else {
+            appState.restaurants = syncedRests;
+          }
+        }
+
+        if (Array.isArray(data.employees) && data.employees.length > 0) {
+          appState.employees = data.employees.map(e => ({
+            id: String(e.ID || e.id),
+            code: String(e.Code || e.code),
+            name: String(e.Name || e.name),
+            phone: String(e.Phone || e.phone),
+            role: String(e.Role || e.role),
+            monthlyQuota: Number(e.Monthly_Quota || e.monthlyQuota || 0),
+            restaurantId: String(e.Restaurant_ID ?? e.restaurantId ?? ''),
+            unit: String(e.Unit || e.unit || '')
+          }));
+        }
+
+        if (Array.isArray(data.focLogs) && data.focLogs.length > 0) {
+          const mappedLogs = data.focLogs.map(l => ({
+            id: String(l.ID || l.id),
+            restaurantId: String(l.Restaurant_ID || l.restaurantId),
+            date: normalizeDateString(l.Usage_Date || l.date),
+            staffId: String(l.Staff_ID || l.staffId || ''),
+            staffNameTitle: String(l.Staff_Name_Title || l.staffNameTitle || ''),
+            type: String(l.Benefit_Type || l.type || 'EMP15'),
+            billCode: String(l.Bill_Code || l.billCode || ''),
+            billAmount: Number(l.Bill_Amount || l.billAmount || 0),
+            discountAmount: Number(l.Discount_Amount || l.discountAmount || 0),
+            extraAmount: Number(l.Extra_Amount || l.extraAmount || 0),
+            verificationType: String(l.Verification_Type || l.verificationType || ''),
+            verificationData: String(l.Verification_Data || l.verificationData || ''),
+            verifiedAt: String(l.Verified_At || l.verifiedAt || ''),
+            cashier: String(l.Cashier_Name || l.cashier || ''),
+            note: String(l.Note || l.note || '')
+          }));
+          appState.focLogs = mappedLogs; // nhà hàng nhận thêm giao dịch MGRCREDIT tháng này của cả chuỗi để cộng dồn hạn mức
+        }
+
+        if (Array.isArray(data.staffMeals) && data.staffMeals.length > 0) {
+          if (!(authSession.role === 'branch' && authSession.lockedBranchId)) {
+            appState.staffMeals = {};
+          }
+          data.staffMeals.forEach(m => {
+            const key = String(m.Record_Key || `${m.Date}__${m.Restaurant_ID}__${m.Staff_ID}`);
+            appState.staffMeals[key] = {
+              date: normalizeDateString(m.Date),
+              restaurantId: String(m.Restaurant_ID),
+              staffId: String(m.Staff_ID),
+              s1: mealN(m.Shift_1),
+              s2: mealN(m.Shift_2),
+              ot: mealN(m.Shift_OT),
+              note: String(m.Note || '')
+            };
+          });
+        }
+
+        saveAppState();
+        populateRestaurantDropdowns();
+        applyBranchLockUI();
+
+        if (showNotification) {
+          showToast('Đã tải dữ liệu mới nhất từ Google Sheets thành công!', 'success');
+        }
+      } catch (err) {
+        console.error('Google Sheets sync error:', err);
+        if (showNotification) {
+          showToast(`Lỗi đồng bộ Google Sheets: ${err.message}`, 'error');
+        }
+      } finally {
+        updateCloudStatusUI(false);
+      }
+    }
+
+    async function postToGoogleSheets(payload) {
+      if (!cloudConfig || !cloudConfig.webAppUrl) return;
+      try {
+        await fetch(cloudConfig.webAppUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            secret: cloudConfig.apiSecret || '',
+            branch: (authSession.role === 'branch' && authSession.lockedBranchId) ? authSession.lockedBranchId : 'ALL',
+            pin: authSession.pin || '',
+            ...payload
+          })
+        });
+      } catch (err) {
+        console.warn('Background push to Google Sheets failed:', err);
+        showToast('Chưa đẩy được dữ liệu lên Google Sheets (mất mạng?). Dữ liệu vẫn lưu trên máy, bấm Đồng bộ sau.', 'error');
+      }
+    }
+
+    function buildFOCSheetRow(log) {
+      const restName = appState.restaurants.find(r => r.id === log.restaurantId)?.name || log.restaurantId;
+      return [
+        log.id,
+        log.restaurantId,
+        restName,
+        log.date,
+        log.staffId,
+        log.staffNameTitle,
+        log.type,
+        log.billCode,
+        log.billAmount,
+        log.discountAmount,
+        log.extraAmount,
+        log.verificationType || '',
+        log.verificationData || '',
+        log.verifiedAt || '',
+        log.cashier || '',
+        log.note || '',
+        new Date().toISOString()
+      ];
+    }
+
+    function buildMealSheetRow(key, rec) {
+      const restName = appState.restaurants.find(r => r.id === rec.restaurantId)?.name || rec.restaurantId;
+      const staffName = appState.employees.find(e => e.id === rec.staffId)?.name || rec.staffId;
+      const total = (mealN(rec.s1)) + (mealN(rec.s2)) + (mealN(rec.ot));
+      return [
+        key,
+        rec.date,
+        rec.restaurantId,
+        restName,
+        rec.staffId,
+        staffName,
+        mealN(rec.s1),
+        mealN(rec.s2),
+        mealN(rec.ot),
+        total,
+        rec.note || '',
+        new Date().toISOString()
+      ];
+    }
+
+    async function pushAllToGoogleSheets() {
+      if (!cloudConfig || !cloudConfig.webAppUrl) {
+        openCloudConfigModal();
+        showToast('Vui lòng kết nối Google Sheets trước khi đẩy dữ liệu!', 'info');
+        return;
+      }
+      updateCloudStatusUI(true);
+      const focRows = appState.focLogs.map(buildFOCSheetRow);
+      const mealRows = Object.entries(appState.staffMeals).map(([k, r]) => buildMealSheetRow(k, r));
+      await postToGoogleSheets({
+        action: 'push_all',
+        restaurants: appState.restaurants.map(r => [r.id, r.name, r.pin || '']),
+        employees: appState.employees.map(e => [e.id, e.code, e.name, e.phone, e.role, e.monthlyQuota, e.restaurantId, e.unit || '']),
+        focRows,
+        mealRows
+      });
+      updateCloudStatusUI(false);
+      showToast('Đã đẩy toàn bộ dữ liệu lên Google Sheets thành công!', 'success');
+    }
+
+    // =========================================================================
+    // 3. DATE & FORMATTING HELPERS
+    // =========================================================================
+    function formatDateISO(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateVN(isoStr) {
+      if (!isoStr) return '';
+      const parts = isoStr.split('-');
+      if (parts.length !== 3) return isoStr;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function getMondayOfWeek(dateObj) {
+      const d = new Date(dateObj);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      return d;
+    }
+
+    function formatVND(amount) {
+      const num = Number(amount) || 0;
+      return num.toLocaleString('vi-VN') + ' đ';
+    }
+
+    function formatNumberPlain(amount) {
+      const num = Number(amount) || 0;
+      return num.toLocaleString('vi-VN');
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION & INITIALIZATION
+    // =========================================================================
+    function switchTab(tabName) {
+      ['foc', 'meal', 'hr'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`nav-${t}`);
+        btn.classList.remove('bg-mindful-gold', 'text-mindful-green', 'shadow-sm');
+        btn.classList.add('text-emerald-100', 'hover:bg-white/10');
+      });
+
+      document.getElementById(`section-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      activeBtn.classList.remove('text-emerald-100', 'hover:bg-white/10');
+      activeBtn.classList.add('bg-mindful-gold', 'text-mindful-green', 'shadow-sm');
+
+      if (tabName === 'foc') renderFOCTable();
+      if (tabName === 'meal') renderMealSection();
+      if (tabName === 'hr') renderHRSection();
+    }
+
+    function populateRestaurantDropdowns() {
+      const isBranchLocked = authSession && authSession.role === 'branch' && authSession.lockedBranchId;
+      const availableRests = isBranchLocked
+        ? appState.restaurants.filter(r => r.id === authSession.lockedBranchId)
+        : appState.restaurants;
+
+      const selects = [
+        document.getElementById('focRestaurantSelect'),
+        document.getElementById('mealRestaurantSelect'),
+        document.getElementById('hrStaffRestaurant')
+      ];
+      selects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = availableRests
+          .map(r => `<option value="${r.id}">${escapeHTML(r.name)}</option>`)
+          .join('');
+        if (isBranchLocked) {
+          sel.value = authSession.lockedBranchId;
+        } else if (currentVal && availableRests.some(r => r.id === currentVal)) {
+          sel.value = currentVal;
+        }
+      });
+
+      const auditSel = document.getElementById('auditRestaurantFilter');
+      if (auditSel) {
+        const curAudit = auditSel.value;
+        if (isBranchLocked) {
+          auditSel.innerHTML = availableRests.map(r => `<option value="${r.id}">${escapeHTML(r.name)}</option>`).join('');
+          auditSel.value = authSession.lockedBranchId;
+        } else {
+          auditSel.innerHTML = '<option value="ALL">Tất cả nhà hàng</option>' +
+            availableRests.map(r => `<option value="${r.id}">${escapeHTML(r.name)}</option>`).join('');
+          if (curAudit) auditSel.value = curAudit;
+        }
+      }
+    }
+
+    function onWeekStartChange() {
+      const startVal = document.getElementById('focWeekStart').value;
+      if (!startVal) return;
+      const startDate = new Date(startVal + 'T00:00:00');
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      document.getElementById('focWeekEnd').value = formatDateISO(endDate);
+      renderFOCTable();
+    }
+
+    function quickAddRestaurantPrompt() {
+      switchTab('hr');
+      document.getElementById('newRestaurantName').focus();
+      showToast('Nhập tên nhà hàng mới ở mục Danh Mục Nhà Hàng bên trái.', 'info');
+    }
+
+    // =========================================================================
+    // 5. MODULE 1 LOGIC: FREE OF CHARGE (BM-01/QT-FOC)
+    // =========================================================================
+    function handleStaffSearchInput(query) {
+      const dropdown = document.getElementById('staffSearchDropdown');
+      const q = query.trim().toLowerCase();
+
+      const matches = visibleEmployees().filter(emp =>
+        emp.name.toLowerCase().includes(q) ||
+        emp.phone.includes(q) ||
+        emp.code.toLowerCase().includes(q)
+      );
+
+      if (matches.length === 0) {
+        dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500">Không tìm thấy nhân sự khớp "${escapeHTML(query)}". Vẫn có thể nhập tay Họ tên / Chức danh bên cạnh.</div>`;
+        document.getElementById('focStaffTitleDisplay').readOnly = false;
+        document.getElementById('focStaffTitleDisplay').classList.remove('bg-slate-50', 'cursor-not-allowed');
+        document.getElementById('focStaffTitleDisplay').value = query;
+        document.getElementById('focSelectedStaffId').value = '';
+      } else {
+        dropdown.innerHTML = matches.map(emp => `
+          <button type="button" onclick="selectFOCStaff('${emp.id}')" class="w-full text-left px-3.5 py-2.5 hover:bg-mindful-greenTint border-b border-slate-100 last:border-0 flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-mindful-green">${escapeHTML(emp.name)} <span class="font-mono text-slate-400">(${escapeHTML(emp.code)})</span></div>
+              <div class="text-[11px] text-slate-500">${escapeHTML(emp.role)} • ${escapeHTML(emp.unit || appState.restaurants.find(r => r.id === emp.restaurantId)?.name || '')}</div>
+            </div>
+            ${emp.monthlyQuota > 0 ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-mindful-goldLight text-mindful-bronze">MGR: ${formatNumberPlain(emp.monthlyQuota)}đ</span>` : ''}
+          </button>
+        `).join('');
+      }
+      dropdown.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const searchBox = document.getElementById('focStaffSearch');
+      const dropdown = document.getElementById('staffSearchDropdown');
+      if (searchBox && dropdown && !searchBox.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    function selectFOCStaff(empId) {
+      const emp = appState.employees.find(e => e.id === empId);
+      if (!emp) return;
+
+      document.getElementById('focSelectedStaffId').value = emp.id;
+      document.getElementById('focStaffSearch').value = `${emp.name} (${emp.code})`;
+      const titleInput = document.getElementById('focStaffTitleDisplay');
+      const useRest = document.getElementById('focRestaurantSelect').value;
+      titleInput.value = `${emp.name} / ${emp.role}` + ((emp.restaurantId !== useRest && emp.unit) ? ` (ĐV: ${emp.unit})` : '');
+      titleInput.readOnly = true;
+      titleInput.classList.add('bg-slate-50', 'cursor-not-allowed');
+      document.getElementById('staffSearchDropdown').classList.add('hidden');
+
+      if (emp.monthlyQuota > 0) {
+        document.getElementById('focBenefitType').value = 'MGRCREDIT';
+      } else {
+        document.getElementById('focBenefitType').value = 'EMP15';
+      }
+      onBenefitTypeChange();
+      if (emp.monthlyQuota > 0) refreshQuotaFromCloud();
+    }
+
+    let lastQuotaSync = 0;
+    async function refreshQuotaFromCloud() {
+      if (!cloudConfig || !cloudConfig.webAppUrl || Date.now() - lastQuotaSync < 15000) return;
+      lastQuotaSync = Date.now();
+      await syncFromGoogleSheets(false); // lấy hạn mức đã dùng ở mọi nhà hàng
+      recalculateFOCPreview();
+    }
+
+    function getMonthlyMgrCreditUsed(staffId, dateISO) {
+      if (!staffId || !dateISO) return 0;
+      const monthPrefix = dateISO.slice(0, 7);
+      return appState.focLogs
+        .filter(log => log.staffId === staffId && log.type === 'MGRCREDIT' && log.date.startsWith(monthPrefix))
+        .reduce((sum, item) => sum + (Number(item.discountAmount) || 0), 0);
+    }
+
+    function setBenefitType(t) { document.getElementById('focBenefitType').value = t; onBenefitTypeChange(); }
+    function onBenefitTypeChange() {
+      document.querySelectorAll('#focTypeButtons button').forEach(b => {
+        const on = b.dataset.t === document.getElementById('focBenefitType').value;
+        b.className = 'rounded-xl border px-2 py-2 text-xs font-bold ' + (on ? 'bg-mindful-green text-white border-mindful-green' : 'bg-white text-slate-600 border-slate-300');
+      });
+      const type = document.getElementById('focBenefitType').value;
+      const customWrap = document.getElementById('focCustomPercentWrap');
+      document.getElementById('chkOffWrap').classList.toggle('hidden', type === 'FOC-OTH');
+      document.getElementById('chkPresentWrap').classList.toggle('hidden', type !== 'MGRCREDIT');
+      document.getElementById('focFoodWrap').classList.toggle('hidden', type !== 'EMP15');
+      if (type === 'FOC-OTH') {
+        customWrap.classList.remove('hidden');
+      } else {
+        customWrap.classList.add('hidden');
+      }
+      recalculateFOCPreview();
+    }
+
+    function recalculateFOCPreview() {
+      const type = document.getElementById('focBenefitType').value;
+      const billAmount = Math.max(0, Number(document.getElementById('focBillAmount').value) || 0);
+      const staffId = document.getElementById('focSelectedStaffId').value;
+      const usageDate = document.getElementById('focUsageDate').value || formatDateISO(new Date());
+      const emp = appState.employees.find(e => e.id === staffId);
+
+      const helperText = document.getElementById('focPolicyHelperText');
+      const quotaBadge = document.getElementById('focQuotaBadge');
+      const discountInput = document.getElementById('focDiscountAmount');
+      const extraInput = document.getElementById('focExtraAmount');
+
+      quotaBadge.classList.add('hidden');
+      document.getElementById('focApproverWrap').classList.add('hidden');
+
+      if (type === 'EMP15') {
+        const foodBase = Math.min(billAmount, Math.max(0, Number(document.getElementById('focFoodAmount').value) || 0));
+        const discount = Math.round(foodBase * 0.15);
+        const extra = Math.max(0, billAmount - discount);
+        discountInput.value = discount;
+        extraInput.value = extra;
+        helperText.innerHTML = `<i class="fa-solid fa-tag text-mindful-green mr-1.5"></i><strong>EMP15 (Ưu đãi NV):</strong> Giảm 15% trên ${formatVND(foodBase)} tiền đồ ăn = ${formatVND(discount)} (không tính nước/đồ uống có cồn). Khách/NV thanh toán phần còn lại <strong>${formatVND(extra)}</strong> (Áp dụng ngoài giờ làm việc).`;
+      } else if (type === 'MGRCREDIT') {
+        const quota = emp ? Number(emp.monthlyQuota) : 0;
+        const used = emp ? getMonthlyMgrCreditUsed(emp.id, usageDate) : 0;
+        const remaining = Math.max(0, quota - used);
+
+        quotaBadge.classList.remove('hidden');
+        quotaBadge.textContent = `Hạn mức tháng còn lại: ${formatVND(remaining)} / ${formatVND(quota)}`;
+
+        if (!emp || quota === 0) {
+          discountInput.value = 0;
+          extraInput.value = billAmount;
+          helperText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-1.5"></i><strong>Cảnh báo:</strong> Nhân sự này không có hạn mức MGRCREDIT theo QĐ 01/QĐ-MM. Toàn bộ <strong>${formatVND(billAmount)}</strong> sẽ tính vào TT thêm.`;
+        } else {
+          const discount = Math.min(billAmount, remaining);
+          const extra = Math.max(0, billAmount - discount);
+          discountInput.value = discount;
+          extraInput.value = extra;
+          helperText.innerHTML = `<i class="fa-solid fa-wallet text-mindful-bronze mr-1.5"></i><strong>MGRCREDIT (${emp.role}):</strong> Trừ <strong>${formatNumberPlain(Math.round(discount / 1000))} điểm</strong> (${formatVND(discount)}). ${extra > 0 ? `Vượt hạn mức: cần thu thêm <strong class="text-red-700">${formatVND(extra)}</strong>.` : 'Nằm trong hạn mức tháng.'}`;
+        }
+      } else if (type === 'FOC-OTH') {
+        const pct = Math.min(100, Math.max(0, Number(document.getElementById('focCustomPercent').value) || 0));
+        const discount = Math.round(billAmount * (pct / 100));
+        const extra = Math.max(0, billAmount - discount);
+        discountInput.value = discount;
+        extraInput.value = extra;
+
+        let approver = 'Quản lý Nhà hàng tự phê duyệt';
+        if (pct > 15) approver = 'Tổng Giám đốc / CEO phê duyệt';
+        else if (pct > 10) approver = 'Giám đốc Vận hành phê duyệt';
+
+        document.getElementById('focApproverWrap').classList.toggle('hidden', pct <= 10);
+        helperText.innerHTML = `<i class="fa-solid fa-stamp text-mindful-bronze mr-1.5"></i><strong>FOC-OTH (Giảm ${pct}%):</strong> Thẩm quyền bắt buộc: <strong class="text-mindful-green underline">${approver}</strong>. Lưu chứng từ duyệt kèm hóa đơn.`;
+      }
+    }
+
+    function recalculateExtraFromManualDiscount() {
+      const billAmount = Math.max(0, Number(document.getElementById('focBillAmount').value) || 0);
+      const discount = Math.max(0, Number(document.getElementById('focDiscountAmount').value) || 0);
+      document.getElementById('focExtraAmount').value = Math.max(0, billAmount - discount);
+    }
+
+    function handleAddFOCTransaction(e) {
+      e.preventDefault();
+      const restaurantId = document.getElementById('focRestaurantSelect').value;
+      const date = document.getElementById('focUsageDate').value;
+      const staffId = document.getElementById('focSelectedStaffId').value;
+      const staffNameTitle = document.getElementById('focStaffTitleDisplay').value.trim();
+      const type = document.getElementById('focBenefitType').value;
+      const billCode = document.getElementById('focBillCode').value.trim().toUpperCase();
+      const billAmount = Math.max(0, Number(document.getElementById('focBillAmount').value) || 0);
+      const discountAmount = Math.max(0, Number(document.getElementById('focDiscountAmount').value) || 0);
+      const extraAmount = Math.max(0, Number(document.getElementById('focExtraAmount').value) || 0);
+      const cashier = document.getElementById('focCashierName').value.trim();
+      let note = document.getElementById('focNote').value.trim();
+      const bad = (m) => { showToast(m, 'error'); };
+      const staffObj = appState.employees.find(x => x.id === staffId);
+      const pct = Number(document.getElementById('focCustomPercent').value) || 0;
+      const approver = document.getElementById('focApprover').value.trim();
+      if (!dateAllowed(date)) return bad(`Ngày sử dụng không hợp lệ (không được ở tương lai; nhà hàng chỉ nhập lùi tối đa ${MAX_BACKDATE_DAYS} ngày, quá hạn liên hệ Phòng HC-NS).`);
+      if (!billCode || appState.focLogs.some(l => l.restaurantId === restaurantId && l.billCode === billCode)) return bad('Mã bill trống hoặc đã được dùng cho một lượt ưu đãi khác.');
+      if (!currentPendingSignature) return bad('Cần người sử dụng ký tay hoặc nhập PIN xác nhận ngay tại quầy trước khi lưu.');
+      if (type !== 'FOC-OTH' && !document.getElementById('focChkOff').checked) return bad('Chỉ áp dụng ngoài giờ làm việc: hãy xác nhận người sử dụng đã ra ca / ngày nghỉ.');
+      if (type === 'MGRCREDIT' && !document.getElementById('focChkPresent').checked) return bad('MGRCREDIT yêu cầu người sử dụng có mặt trực tiếp trong bữa ăn.');
+      if (type === 'MGRCREDIT' && staffObj && /quản lý nhà hàng/i.test(staffObj.role) && !note) return bad('Quản lý Nhà hàng chỉ dùng MGRCREDIT cho công việc: ghi rõ mục đích vào Ghi chú.');
+      if (type === 'EMP15' && !(Number(document.getElementById('focFoodAmount').value) > 0)) return bad('Nhập giá trị tiền ĐỒ ĂN trong bill (ưu đãi 15% chỉ tính trên đồ ăn).');
+      if (type === 'FOC-OTH' && !note) return bad('FOC-OTH: ghi rõ mục đích tiếp khách/xử lý công việc vào Ghi chú.');
+      if (type === 'FOC-OTH' && pct > 10 && !approver) return bad('Giảm trên 10% phải có người phê duyệt (Giám đốc Vận hành / CEO) và lưu chứng từ duyệt.');
+      note = [type === 'EMP15' ? `Đồ ăn ${formatNumberPlain(document.getElementById('focFoodAmount').value)}` : '', type === 'FOC-OTH' ? `Giảm ${pct}%` : '', (type === 'FOC-OTH' && pct > 10) ? `Duyệt: ${approver}` : '', note].filter(Boolean).join(' | ');
+
+      if (!staffNameTitle) {
+        showToast('Vui lòng chọn hoặc nhập Họ tên / Chức danh người sử dụng!', 'error');
+        return;
+      }
+
+      const newLog = {
+        id: 'foc_' + Date.now(),
+        restaurantId,
+        date,
+        staffId,
+        staffNameTitle,
+        type,
+        billCode,
+        billAmount,
+        discountAmount,
+        extraAmount,
+        verificationType: currentPendingSignature ? currentPendingSignature.type : '',
+        verificationData: currentPendingSignature ? currentPendingSignature.data : '',
+        verifiedAt: currentPendingSignature ? currentPendingSignature.verifiedAt : '',
+        cashier,
+        note
+      };
+
+      appState.focLogs.push(newLog);
+      saveAppState();
+      postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(newLog) });
+
+      document.getElementById('focBillCode').value = '';
+      document.getElementById('focBillAmount').value = '';
+      document.getElementById('focDiscountAmount').value = '0';
+      document.getElementById('focExtraAmount').value = '0';
+      document.getElementById('focNote').value = '';
+      ['focChkOff', 'focChkPresent'].forEach(i => document.getElementById(i).checked = false);
+      ['focFoodAmount', 'focApprover'].forEach(i => document.getElementById(i).value = '');
+      currentPendingSignature = null;
+      document.getElementById('newEntryVerifyStatus').textContent = 'Chưa xác nhận (Có thể ký sau trên bảng)';
+      document.getElementById('newEntryVerifyStatus').className = 'text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200';
+
+      renderFOCTable();
+      showToast('Đã lưu dòng phát sinh vào biểu mẫu BM-01/QT-FOC!', 'success');
+    }
+
+    function getFilteredFOCLogs() {
+      const restaurantId = document.getElementById('focRestaurantSelect').value;
+      const weekStart = document.getElementById('focWeekStart').value;
+      const weekEnd = document.getElementById('focWeekEnd').value;
+
+      return appState.focLogs
+        .filter(item => {
+          if (item.restaurantId !== restaurantId) return false;
+          if (weekStart && item.date < weekStart) return false;
+          if (weekEnd && item.date > weekEnd) return false;
+          return true;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function renderFOCTable() {
+      const logs = getFilteredFOCLogs();
+      const tbody = document.getElementById('focTableBody');
+
+      const totalSheets = Math.max(1, Math.ceil(logs.length / 12));
+      document.getElementById('focSheetCountBadge').textContent = `Tờ số: ${String(totalSheets).padStart(2, '0')}`;
+      document.getElementById('focTotalRowsBadge').textContent = `${logs.length} lượt`;
+
+      let sumBill = 0, sumDiscount = 0, sumExtra = 0;
+
+      if (logs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" class="py-10 text-center text-slate-400 text-sm">
+              <i class="fa-regular fa-folder-open text-2xl mb-2 block text-slate-300"></i>
+              Chưa có lượt sử dụng ưu đãi/FOC nào trong tuần này tại nhà hàng đã chọn.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = logs.map((item, idx) => {
+          sumBill += Number(item.billAmount) || 0;
+          sumDiscount += Number(item.discountAmount) || 0;
+          sumExtra += Number(item.extraAmount) || 0;
+
+          const sheetNo = Math.floor(idx / 12) + 1;
+          const rowInSheet = (idx % 12) + 1;
+
+          let typeBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+          if (item.type === 'MGRCREDIT') typeBadgeClass = 'bg-amber-50 text-amber-800 border-amber-300';
+          if (item.type === 'FOC-OTH') typeBadgeClass = 'bg-purple-50 text-purple-800 border-purple-200';
+
+          let verifyCellHTML = '';
+          if (item.verificationType === 'signature' && item.verificationData) {
+            verifyCellHTML = `
+              <div class="flex flex-col items-center">
+                <img src="${escapeHTML(item.verificationData)}" alt="Chữ ký" class="h-9 max-w-[110px] object-contain border border-slate-200 rounded bg-white p-0.5" />
+                <span class="text-[10px] text-emerald-700 font-medium mt-0.5">${escapeHTML(item.verifiedAt)}</span>
+              </div>
+            `;
+          } else if (item.verificationType === 'pin' && item.verificationData) {
+            verifyCellHTML = `
+              <div class="inline-flex flex-col items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800">
+                <span class="text-[11px] font-bold"><i class="fa-solid fa-circle-check mr-1"></i>${escapeHTML(item.verificationData)}</span>
+                <span class="text-[9px] text-emerald-600">${escapeHTML(item.verifiedAt)}</span>
+              </div>
+            `;
+          } else {
+            verifyCellHTML = `
+              <div class="flex items-center justify-center gap-1">
+                <button onclick="openSignatureModal('${item.id}')" title="Ký tay xác nhận" class="px-2 py-1 rounded-lg bg-mindful-greenTint hover:bg-mindful-green text-mindful-green hover:text-white text-[11px] font-semibold transition">
+                  <i class="fa-solid fa-pen-nib"></i> Ký
+                </button>
+                <button onclick="openPinModal('${item.id}')" title="Xác nhận mã PIN" class="px-2 py-1 rounded-lg bg-mindful-goldLight hover:bg-mindful-gold text-mindful-bronze hover:text-mindful-green text-[11px] font-semibold transition">
+                  PIN
+                </button>
+              </div>
+            `;
+          }
+
+          return `
+            <tr class="hover:bg-slate-50/90 transition">
+              <td class="py-2.5 px-3 text-center">
+                <span class="font-bold text-slate-800">${rowInSheet}</span>
+                <span class="block text-[10px] text-slate-400">Tờ ${String(sheetNo).padStart(2, '0')}</span>
+              </td>
+              <td class="py-2.5 px-3 font-medium text-slate-700">${formatDateVN(item.date)}</td>
+              <td class="py-2.5 px-3 font-semibold text-mindful-green">${escapeHTML(item.staffNameTitle)}</td>
+              <td class="py-2.5 px-3">
+                <span class="px-2 py-0.5 rounded-md text-xs font-bold border ${typeBadgeClass}">${escapeHTML(item.type)}</span>
+              </td>
+              <td class="py-2.5 px-3 font-mono text-xs font-semibold text-slate-700">${escapeHTML(item.billCode)}</td>
+              <td class="py-2.5 px-3 text-right font-medium text-slate-800">${formatNumberPlain(item.billAmount)}</td>
+              <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${formatNumberPlain(item.discountAmount)}</td>
+              <td class="py-2.5 px-3 text-right font-bold ${item.extraAmount > 0 ? 'text-amber-700' : 'text-slate-400'}">${formatNumberPlain(item.extraAmount)}</td>
+              <td class="py-2.5 px-3 text-center">${verifyCellHTML}</td>
+              <td class="py-2.5 px-3 text-xs font-medium text-slate-700">${escapeHTML(item.cashier)}</td>
+              <td class="py-2.5 px-3 text-xs text-slate-600">${escapeHTML(item.note)}</td>
+              <td class="py-2.5 px-2 text-center">
+                <button onclick="deleteFOCLog('${item.id}')" title="Xóa dòng này" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg transition">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('focSumBill').textContent = formatVND(sumBill);
+      document.getElementById('focSumDiscount').textContent = formatVND(sumDiscount);
+      document.getElementById('focSumExtra').textContent = formatVND(sumExtra);
+    }
+
+    function deleteFOCLog(id) {
+      if (authSession.role === 'branch' && Date.now() - (Number(String(id).replace('foc_', '')) || 0) > 30 * 60000) {
+        showToast('Chỉ được xóa dòng vừa nhập trong 30 phút. Liên hệ Phòng HC-NS để hủy dòng này.', 'error');
+        return;
+      }
+      if (!confirm('Xóa dòng giao dịch này? Hạn mức MGRCREDIT sẽ được hoàn lại.')) return;
+      appState.focLogs = appState.focLogs.filter(item => item.id !== id);
+      saveAppState();
+      postToGoogleSheets({ action: 'delete_foc', id });
+      renderFOCTable();
+      showToast('Đã xóa dòng giao dịch.', 'info');
+    }
+
+    // =========================================================================
+    // 6. SIGNATURE PAD & PIN VERIFICATION LOGIC
+    // =========================================================================
+    let activeVerifyTargetId = null;
+
+    function initSignatureCanvas() {
+      sigCanvas = document.getElementById('signatureCanvas');
+      sigCtx = sigCanvas.getContext('2d');
+
+      const resizeSigCanvas = () => {
+        const rect = sigCanvas.getBoundingClientRect();
+        if (rect.width === 0) return;
+        sigCanvas.width = rect.width;
+        sigCanvas.height = rect.height;
+        sigCtx.strokeStyle = '#12372A';
+        sigCtx.lineWidth = 2.5;
+        sigCtx.lineCap = 'round';
+        sigCtx.lineJoin = 'round';
+      };
+
+      const getPos = (e) => {
+        const rect = sigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+
+      const startDraw = (e) => {
+        isDrawingSig = true;
+        const pos = getPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(pos.x, pos.y);
+      };
+
+      const moveDraw = (e) => {
+        if (!isDrawingSig) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        sigCtx.lineTo(pos.x, pos.y);
+        sigCtx.stroke();
+      };
+
+      const endDraw = () => {
+        isDrawingSig = false;
+      };
+
+      sigCanvas.addEventListener('mousedown', startDraw);
+      sigCanvas.addEventListener('mousemove', moveDraw);
+      window.addEventListener('mouseup', endDraw);
+
+      sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+      sigCanvas.addEventListener('touchmove', moveDraw, { passive: false });
+      sigCanvas.addEventListener('touchend', endDraw);
+
+      window.resizeSigCanvasGlobal = resizeSigCanvas;
+    }
+
+    function openSignatureModal(targetId) {
+      activeVerifyTargetId = targetId;
+      document.getElementById('signatureModal').classList.remove('hidden');
+      setTimeout(() => {
+        if (window.resizeSigCanvasGlobal) window.resizeSigCanvasGlobal();
+        clearSignatureCanvas();
+      }, 40);
+    }
+
+    function closeSignatureModal() {
+      document.getElementById('signatureModal').classList.add('hidden');
+    }
+
+    function clearSignatureCanvas() {
+      if (!sigCtx || !sigCanvas) return;
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    }
+
+    function confirmSignature() {
+      const dataUrl = sigCanvas.toDataURL('image/png');
+      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + formatDateVN(formatDateISO(new Date()));
+
+      if (activeVerifyTargetId === 'new') {
+        currentPendingSignature = { type: 'signature', data: dataUrl, verifiedAt: nowStr };
+        const badge = document.getElementById('newEntryVerifyStatus');
+        badge.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>Đã ký tay điện tử (${nowStr})`;
+        badge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200';
+      } else {
+        const log = appState.focLogs.find(l => l.id === activeVerifyTargetId);
+        if (log) {
+          log.verificationType = 'signature';
+          log.verificationData = dataUrl;
+          log.verifiedAt = nowStr;
+          saveAppState();
+          postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(log) });
+          renderFOCTable();
+        }
+      }
+      closeSignatureModal();
+      showToast('Đã lưu chữ ký xác nhận điện tử!', 'success');
+    }
+
+    function openPinModal(targetId) {
+      activeVerifyTargetId = targetId;
+      document.getElementById('pinInputField').value = '';
+      document.getElementById('pinModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('pinInputField').focus(), 50);
+    }
+
+    function closePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    function confirmPinVerification() {
+      const pin = document.getElementById('pinInputField').value.trim();
+      if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        showToast('Vui lòng nhập đủ 4 chữ số PIN!', 'error');
+        return;
+      }
+
+      let staffId = '';
+      if (activeVerifyTargetId === 'new') {
+        staffId = document.getElementById('focSelectedStaffId').value;
+      } else {
+        const log = appState.focLogs.find(l => l.id === activeVerifyTargetId);
+        if (log) staffId = log.staffId;
+      }
+
+      const emp = appState.employees.find(e => e.id === staffId);
+      if (Date.now() < Number(sessionStorage.getItem('pin_lock') || 0)) { showToast('Nhập sai PIN nhiều lần, thử lại sau 3 phút hoặc dùng chữ ký tay.', 'error'); return; }
+      if (!emp || !emp.phone || emp.phone.slice(-4) !== pin) {
+        const n = Number(sessionStorage.getItem('pin_fail') || 0) + 1;
+        sessionStorage.setItem('pin_fail', String(n % 3));
+        if (n >= 3) sessionStorage.setItem('pin_lock', String(Date.now() + 180000));
+        showToast(emp ? (emp.phone ? 'Mã PIN không khớp với 4 số cuối SĐT của nhân viên này!' : 'Thiết bị nhà hàng không xem được SĐT nhân viên: hãy dùng chữ ký tay (tạm thời, sẽ thay bằng QR).') : 'Chưa chọn nhân viên trong danh sách: hãy dùng chữ ký tay.', 'error');
+        return;
+      }
+
+      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + formatDateVN(formatDateISO(new Date()));
+      const pinBadgeText = `PIN ****${pin}`;
+
+      if (activeVerifyTargetId === 'new') {
+        currentPendingSignature = { type: 'pin', data: pinBadgeText, verifiedAt: nowStr };
+        const badge = document.getElementById('newEntryVerifyStatus');
+        badge.innerHTML = `<i class="fa-solid fa-shield-check mr-1"></i>Đã xác thực ${pinBadgeText} (${nowStr})`;
+        badge.className = 'text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200';
+      } else {
+        const log = appState.focLogs.find(l => l.id === activeVerifyTargetId);
+        if (log) {
+          log.verificationType = 'pin';
+          log.verificationData = pinBadgeText;
+          log.verifiedAt = nowStr;
+          saveAppState();
+          postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(log) });
+          renderFOCTable();
+        }
+      }
+
+      closePinModal();
+      showToast('Xác thực mã PIN thành công!', 'success');
+    }
+
+    // =========================================================================
+    // 7. OFFICIAL BM-01/QT-FOC LOGO & 100% EXACT EXPORT (WORD, EXCEL & PRINT)
+    // =========================================================================
+    function generateOfficialLogoPNGDataURL() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 104;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+
+      const cx = 52, cy = 52, r = 46;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip();
+
+      ctx.fillStyle = '#12372A';
+      ctx.fillRect(cx - r, cy - r, r, r * 2);
+
+      ctx.fillStyle = '#E8A825';
+      ctx.fillRect(cx, cy - r, r, r * 2);
+
+      ctx.beginPath();
+      ctx.arc(cx, cy + 8, 15, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(248, 245, 236, 0.35)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 26, cy + 25);
+      ctx.lineTo(cx - 26, cy - 13);
+      ctx.quadraticCurveTo(cx - 26, cy - 18, cx - 21, cy - 15);
+      ctx.lineTo(cx, cy + 4);
+      ctx.lineTo(cx + 21, cy - 15);
+      ctx.quadraticCurveTo(cx + 26, cy - 18, cx + 26, cy - 13);
+      ctx.lineTo(cx + 26, cy + 25);
+      ctx.strokeStyle = '#F8F5EC';
+      ctx.lineWidth = 7.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy + 8, 6.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#E8A825';
+      ctx.fill();
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = '#F8F5EC';
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = '800 34px Arial, sans-serif';
+      ctx.fillStyle = '#12372A';
+      ctx.fillText('Mindful', 114, 52);
+      const mindfulWidth = ctx.measureText('Mindful ').width;
+      ctx.fillStyle = '#B87333';
+      ctx.fillText('Meals', 114 + mindfulWidth, 52);
+
+      ctx.font = '500 20px Arial, sans-serif';
+      ctx.fillStyle = '#B87333';
+      ctx.fillText('by Mindful Holdings', 114, 80);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    function buildOfficialBM01DocumentHTML(forOfficeExport = false) {
+      const restaurantId = document.getElementById('focRestaurantSelect').value;
+      const restaurantName = appState.restaurants.find(r => r.id === restaurantId)?.name || '';
+      const weekStart = formatDateVN(document.getElementById('focWeekStart').value);
+      const weekEnd = formatDateVN(document.getElementById('focWeekEnd').value);
+      const logs = getFilteredFOCLogs();
+      const logoPng = generateOfficialLogoPNGDataURL();
+
+      const sheets = [];
+      for (let i = 0; i < Math.max(1, logs.length); i += 12) {
+        sheets.push(logs.slice(i, i + 12));
+      }
+
+      return sheets.map((sheetRows, sIdx) => {
+        const sheetNumber = String(sIdx + 1).padStart(2, '0');
+        let rowsHTML = '';
+        for (let r = 0; r < 12; r++) {
+          const item = sheetRows[r];
+          let sigCell = '';
+          if (item) {
+            if (item.verificationType === 'signature' && item.verificationData) {
+              sigCell = `<img src="${escapeHTML(item.verificationData)}" width="72" height="22" style="max-height:22px;max-width:78px;" />`;
+            } else if (item.verificationData) {
+              sigCell = `<span style="font-size:8.5pt;font-weight:bold;color:#12372A;">${escapeHTML(item.verificationData)}</span>`;
+            }
+          }
+          rowsHTML += `
+            <tr style="height:21pt;">
+              <td style="border:1px solid #000;text-align:center;font-size:9.5pt;padding:2px 3px;">${r + 1}</td>
+              <td style="border:1px solid #000;text-align:center;font-size:9.5pt;padding:2px 4px;">${item ? formatDateVN(item.date) : ''}</td>
+              <td style="border:1px solid #000;font-size:9.5pt;padding:2px 5px;font-weight:${item ? 'bold' : 'normal'};">${item ? escapeHTML(item.staffNameTitle) : ''}</td>
+              <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:2px 4px;font-weight:${item ? 'bold' : 'normal'};">${item ? escapeHTML(item.type) : ''}</td>
+              <td style="border:1px solid #000;text-align:center;font-size:9.5pt;padding:2px 4px;">${item ? escapeHTML(item.billCode) : ''}</td>
+              <td style="border:1px solid #000;text-align:right;font-size:9.5pt;padding:2px 5px;">${item ? formatNumberPlain(item.billAmount) : ''}</td>
+              <td style="border:1px solid #000;text-align:right;font-size:9.5pt;padding:2px 5px;font-weight:${item ? 'bold' : 'normal'};">${item ? formatNumberPlain(item.discountAmount) : ''}</td>
+              <td style="border:1px solid #000;text-align:right;font-size:9.5pt;padding:2px 5px;">${item && Number(item.extraAmount) > 0 ? formatNumberPlain(item.extraAmount) : ''}</td>
+              <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:1px 3px;">${sigCell}</td>
+              <td style="border:1px solid #000;text-align:center;font-size:9.5pt;padding:2px 4px;">${item ? escapeHTML(item.cashier) : ''}</td>
+              <td style="border:1px solid #000;font-size:9pt;padding:2px 4px;">${item ? escapeHTML(item.note) : ''}</td>
+            </tr>
+          `;
+        }
+
+        const pageBreakStyle = (!forOfficeExport && sIdx < sheets.length - 1) ? 'page-break-after:always;' : '';
+        const wordPageBreak = (forOfficeExport && sIdx < sheets.length - 1) ? '<br clear="all" style="page-break-before:always" />' : '';
+
+        return `
+          <div style="font-family:'Times New Roman',serif;color:#000;width:100%;${pageBreakStyle}">
+            <!-- Header block matching 100% original BM-01/QT-FOC -->
+            <table style="width:100%;border-collapse:collapse;border:none;">
+              <tr>
+                <td style="width:68%;vertical-align:top;border:none;padding:0;">
+                  <img src="${logoPng}" width="215" height="47" style="display:block;margin-bottom:3px;" />
+                  <div style="font-weight:bold;font-size:11pt;color:#000;letter-spacing:0.2px;">CÔNG TY CỔ PHẦN TMDV MINDFUL MEALS</div>
+                </td>
+                <td style="width:32%;vertical-align:top;border:none;padding:0;">
+                  <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
+                    <tr>
+                      <td style="border:none;padding:5px 10px;font-size:10pt;line-height:1.45;">
+                        <div><strong>Mã biểu mẫu:</strong> BM-01/QT-FOC</div>
+                        <div><strong>Lần ban hành:</strong> 01</div>
+                        <div><strong>Ngày hiệu lực:</strong> 04/08/2026</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Main Form Title -->
+            <div style="text-align:center;margin-top:8px;margin-bottom:8px;">
+              <div style="font-size:14pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.3px;">BẢNG TỔNG HỢP SỬ DỤNG DỊCH VỤ ƯU ĐÃI / FOC (THEO TUẦN)</div>
+              <div style="font-size:10.5pt;font-style:italic;margin-top:2px;">(Dùng chung cho nhiều người sử dụng tại 01 nhà hàng trong 01 tuần – EMP15, MGRCREDIT, FOC-OTH)</div>
+            </div>
+
+            <!-- Borderless Metadata Line -->
+            <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:6px;font-size:10.5pt;">
+              <tr>
+                <td style="width:38%;border:none;padding:2px 0;"><strong>Nhà hàng:</strong> ${escapeHTML(restaurantName)}</td>
+                <td style="width:24%;border:none;padding:2px 0;"><strong>Tuần &nbsp;&nbsp;&nbsp; từ ngày:</strong> ${weekStart}</td>
+                <td style="width:22%;border:none;padding:2px 0;"><strong>Đến ngày:</strong> ${weekEnd}</td>
+                <td style="width:16%;border:none;padding:2px 0;"><strong>Tờ số:</strong> ${sheetNumber}</td>
+              </tr>
+            </table>
+
+            <!-- Main 11-Column Data Table -->
+            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+              <thead>
+                <tr style="background-color:#F2F2F2;font-weight:bold;text-align:center;font-size:9.5pt;">
+                  <th style="border:1px solid #000;width:4%;padding:4px 2px;">STT</th>
+                  <th style="border:1px solid #000;width:8.5%;padding:4px 2px;">Ngày sử dụng</th>
+                  <th style="border:1px solid #000;width:16.5%;padding:4px 4px;">Họ và tên / Chức danh</th>
+                  <th style="border:1px solid #000;width:11%;padding:4px 2px;">Loại hình<br/><span style="font-size:8pt;font-weight:normal;">(EMP15/MGRCREDIT<br/>/FOC-OTH)</span></th>
+                  <th style="border:1px solid #000;width:8.5%;padding:4px 2px;">Mã bill thanh toán</th>
+                  <th style="border:1px solid #000;width:8%;padding:4px 2px;">Giá trị<br/>hóa đơn</th>
+                  <th style="border:1px solid #000;width:8%;padding:4px 2px;">Mức ưu đãi</th>
+                  <th style="border:1px solid #000;width:8%;padding:4px 2px;">TT thêm<br/><span style="font-size:8pt;font-weight:normal;">(nếu vượt)</span></th>
+                  <th style="border:1px solid #000;width:9.5%;padding:4px 2px;">Chữ ký<br/>người sử dụng</th>
+                  <th style="border:1px solid #000;width:8%;padding:4px 2px;">Thu ngân</th>
+                  <th style="border:1px solid #000;width:10%;padding:4px 2px;">Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHTML}
+              </tbody>
+            </table>
+
+            <!-- Manager Sign-off & Notes -->
+            <table style="width:100%;border-collapse:collapse;border:none;margin-top:8px;">
+              <tr>
+                <td style="width:65%;vertical-align:top;border:none;padding:0;font-size:9.5pt;line-height:1.4;">
+                  <div style="font-weight:bold;text-decoration:underline;margin-bottom:2px;">Ghi chú:</div>
+                  <div>- Mỗi dòng tương ứng với 01 lượt sử dụng dịch vụ ưu đãi/FOC của 01 người tại nhà hàng; người sử dụng và thu ngân ký xác nhận ngay trên dòng phát sinh.. nếu trong 1 tuần có nhiều tờ thì đánh số thứ tự</div>
+                  <div>- Cuối tuần, Quản lý Nhà hàng tổng hợp và chuyển bản gốc về Phòng Tài chính – Kế toán để lưu trữ.</div>
+                </td>
+                <td style="width:35%;vertical-align:top;text-align:center;border:none;padding:0;font-size:10pt;">
+                  <div style="font-weight:bold;">QUẢN LÝ NHÀ HÀNG</div>
+                  <div style="font-style:italic;font-size:9pt;">(Ký, ghi rõ họ tên)</div>
+                  <div style="height:44px;"></div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Footer Decision Reference -->
+            <div style="margin-top:6px;border-top:1px solid #000;padding-top:3px;font-size:8.5pt;font-style:italic;">
+              BM-01/QT-FOC – Phụ lục “Quy trình thực hiện chính sách ưu đãi nội bộ và FOC” ban hành kèm theo Quyết định số 01/QĐ-MM ngày 15/07/2026.
+            </div>
+          </div>
+          ${wordPageBreak}
+        `;
+      }).join('');
+    }
+
+    function prepareAndPrintBM01() {
+      const printArea = document.getElementById('printAreaBM01');
+      printArea.innerHTML = buildOfficialBM01DocumentHTML(false);
+      window.print();
+    }
+
+    function exportFOCWordBM01() {
+      const restaurantId = document.getElementById('focRestaurantSelect').value;
+      const restaurantName = appState.restaurants.find(r => r.id === restaurantId)?.name || 'NhaHang';
+      const weekStart = document.getElementById('focWeekStart').value;
+      const bodyHTML = buildOfficialBM01DocumentHTML(true);
+
+      const wordHTML = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="utf-8" />
+          <title>BM-01/QT-FOC - ${escapeHTML(restaurantName)}</title>
+          <!--[if gte mso 9]>
+          <xml>
+            <w:WordDocument>
+              <w:View>Print</w:View>
+              <w:Zoom>100</w:Zoom>
+              <w:DoNotOptimizeForBrowser/>
+            </w:WordDocument>
+          </xml>
+          <![endif]-->
+          <style>
+            @page Section1 {
+              size: 297mm 210mm;
+              mso-page-orientation: landscape;
+              margin: 10mm 10mm 10mm 10mm;
+            }
+            div.Section1 { page: Section1; }
+            body { font-family: "Times New Roman", serif; }
+          </style>
+        </head>
+        <body>
+          <div class="Section1">
+            ${bodyHTML}
+          </div>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', wordHTML], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BM01_QT_FOC_${restaurantName.replace(/\s+/g, '_')}_${weekStart}.doc`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Đã xuất file Word chuẩn 100% biểu mẫu BM-01/QT-FOC!', 'success');
+    }
+
+    function exportFOCExcel() {
+      const restaurantId = document.getElementById('focRestaurantSelect').value;
+      const restaurantName = appState.restaurants.find(r => r.id === restaurantId)?.name || 'NhaHang';
+      const weekStart = document.getElementById('focWeekStart').value;
+      const bodyHTML = buildOfficialBM01DocumentHTML(true);
+
+      const excelHTML = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="UTF-8" />
+          <!--[if gte mso 9]>
+          <xml>
+            <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                  <x:Name>BM-01_QT-FOC</x:Name>
+                  <x:WorksheetOptions>
+                    <x:PageSetup>
+                      <x:Layout x:Orientation="Landscape"/>
+                    </x:PageSetup>
+                    <x:DisplayGridlines/>
+                  </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+          </xml>
+          <![endif]-->
+        </head>
+        <body style="font-family:'Times New Roman',serif;">
+          ${bodyHTML}
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BM01_QT_FOC_${restaurantName.replace(/\s+/g, '_')}_${weekStart}.xls`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Đã xuất file Excel chuẩn biểu mẫu BM-01/QT-FOC!', 'success');
+    }
+
+    // =========================================================================
+    // 8. MODULE 2 LOGIC: STAFF MEAL (CƠM CA & THỐNG KÊ NGÀY / THÁNG / NĂM)
+    // =========================================================================
+    let currentMealMode = 'self';
+    let currentStatsPeriod = 'day';
+
+    function setMealMode(mode) {
+      currentMealMode = mode;
+      const selfBtn = document.getElementById('mealModeSelfBtn');
+      const mgrBtn = document.getElementById('mealModeMgrBtn');
+      const selfPanel = document.getElementById('mealSelfRegisterPanel');
+
+      if (mode === 'self') {
+        selfBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-mindful-green text-white shadow-sm transition';
+        mgrBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+        selfPanel.classList.remove('hidden');
+      } else {
+        mgrBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-mindful-green text-white shadow-sm transition';
+        selfBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+        selfPanel.classList.add('hidden');
+      }
+    }
+
+    function mealN(v) { if (v === true || String(v).toUpperCase() === 'TRUE') return 1; return Math.max(0, parseInt(v, 10) || 0); }
+    function getMealRecordKey(dateISO, restaurantId, staffId) {
+      return `${dateISO}__${restaurantId}__${staffId}`;
+    }
+
+    function getMealRecord(dateISO, restaurantId, staffId) {
+      const key = getMealRecordKey(dateISO, restaurantId, staffId);
+      return appState.staffMeals[key] || {
+        date: dateISO,
+        restaurantId,
+        staffId,
+        s1: false,
+        s2: false,
+        ot: false,
+        note: ''
+      };
+    }
+
+    function renderMealSection() {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value || formatDateISO(new Date());
+      const sf = document.getElementById('mealSelfStaffSelect')?.closest('form');
+      if (sf) sf.classList.add('hidden');
+      document.querySelectorAll('[onclick^="bulkCheckShift"]').forEach(b => b.parentElement.classList.add('hidden'));
+      const rec = getMealRecord(dateISO, restaurantId, 'TOTAL');
+      const inp = (f) => `<input type="number" min="0" max="999" value="${mealN(rec[f])}" onchange="setMealTotal('${f}', this.value)" class="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-center text-sm font-bold" />`;
+      const total = mealN(rec.s1) + mealN(rec.s2) + mealN(rec.ot);
+      document.getElementById('mealChecklistBody').innerHTML = `
+        <tr>
+          <td class="py-3 px-4 text-center text-slate-500">1</td>
+          <td colspan="3" class="py-3 px-4 font-bold text-mindful-green">Tổng số suất ăn ngày ${formatDateVN(dateISO)} (quản lý chốt cuối mỗi ca)</td>
+          <td class="py-3 px-3 text-center">${inp('s1')}</td>
+          <td class="py-3 px-3 text-center">${inp('s2')}</td>
+          <td class="py-3 px-3 text-center">${inp('ot')}</td>
+          <td class="py-3 px-3 text-center"><span id="mealRowTotal" class="inline-block min-w-[28px] px-2 py-0.5 rounded-full text-xs font-extrabold bg-mindful-green text-white">${total}</span></td>
+          <td class="py-3 px-4"><input type="text" value="${escapeHTML(rec.note || '')}" onchange="setMealTotal('note', this.value)" placeholder="Ghi chú..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1 text-xs" /></td>
+        </tr>`;
+      document.getElementById('mealCountS1').textContent = mealN(rec.s1);
+      document.getElementById('mealCountS2').textContent = mealN(rec.s2);
+      document.getElementById('mealCountTotal').textContent = total;
+      renderMealStatistics();
+    }
+
+    function setMealTotal(field, val) {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value || formatDateISO(new Date());
+      if (!dateAllowed(dateISO)) { showToast(`Không sửa được ngày này (nhà hàng chỉ sửa lùi tối đa ${MAX_BACKDATE_DAYS} ngày, không sửa tương lai).`, 'error'); renderMealSection(); return; }
+      const key = getMealRecordKey(dateISO, restaurantId, 'TOTAL');
+      const rec = getMealRecord(dateISO, restaurantId, 'TOTAL');
+      rec[field] = field === 'note' ? String(val).trim() : Math.min(999, mealN(val));
+      appState.staffMeals[key] = rec;
+      saveAppState();
+      postToGoogleSheets({ action: 'upsert_meal', row: buildMealSheetRow(key, rec) });
+      renderMealSection();
+    }
+
+    function toggleMealShift(staffId, shiftField, checked) {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value;
+      if (!dateAllowed(dateISO)) { showToast(`Không sửa được ngày này (nhà hàng chỉ sửa lùi tối đa ${MAX_BACKDATE_DAYS} ngày, không sửa tương lai).`, 'error'); renderMealSection(); return; }
+      const key = getMealRecordKey(dateISO, restaurantId, staffId);
+      const rec = getMealRecord(dateISO, restaurantId, staffId);
+      rec[shiftField] = checked;
+      appState.staffMeals[key] = rec;
+      saveAppState();
+      postToGoogleSheets({ action: 'upsert_meal', row: buildMealSheetRow(key, rec) });
+      renderMealSection();
+    }
+
+    function updateMealNote(staffId, noteVal) {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value;
+      const key = getMealRecordKey(dateISO, restaurantId, staffId);
+      const rec = getMealRecord(dateISO, restaurantId, staffId);
+      rec.note = noteVal.trim();
+      appState.staffMeals[key] = rec;
+      saveAppState();
+      postToGoogleSheets({ action: 'upsert_meal', row: buildMealSheetRow(key, rec) });
+    }
+
+    function handleSelfMealRegister(e) {
+      e.preventDefault();
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value;
+      const staffId = document.getElementById('mealSelfStaffSelect').value;
+      const s1 = document.getElementById('mealSelfS1').checked;
+      const s2 = document.getElementById('mealSelfS2').checked;
+      const ot = document.getElementById('mealSelfOT').checked;
+      const note = document.getElementById('mealSelfNote').value.trim();
+      const who = appState.employees.find(x => x.id === staffId);
+      if (!who || !who.phone || who.phone.slice(-4) !== document.getElementById('mealSelfPin').value.trim()) { showToast('Sai 4 số cuối SĐT: nhân viên chỉ được tự báo suất của chính mình.', 'error'); return; }
+      document.getElementById('mealSelfPin').value = '';
+      if (dateISO !== formatDateISO(new Date())) { showToast('Nhân viên chỉ tự báo cơm cho hôm nay; ngày khác nhờ Quản lý chốt ca.', 'error'); return; }
+
+      if (!s1 && !s2 && !ot) {
+        showToast('Vui lòng chọn ít nhất 1 ca ăn cơm!', 'error');
+        return;
+      }
+
+      const key = getMealRecordKey(dateISO, restaurantId, staffId);
+      const rec = { date: dateISO, restaurantId, staffId, s1, s2, ot, note };
+      appState.staffMeals[key] = rec;
+      saveAppState();
+      postToGoogleSheets({ action: 'upsert_meal', row: buildMealSheetRow(key, rec) });
+
+      document.getElementById('mealSelfNote').value = '';
+      renderMealSection();
+      const emp = appState.employees.find(x => x.id === staffId);
+      showToast(`Đã đăng ký cơm ca ngày ${formatDateVN(dateISO)} cho ${emp ? emp.name : 'nhân viên'}!`, 'success');
+    }
+
+    function bulkCheckShift(shiftField, value) {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const dateISO = document.getElementById('mealDateInput').value;
+      const branchStaff = appState.employees.filter(e => e.restaurantId === restaurantId || !e.restaurantId);
+      const staffList = branchStaff.length > 0 ? branchStaff : appState.employees;
+      const updatedRows = [];
+      if (!dateAllowed(dateISO)) { showToast('Ngày này không được sửa hàng loạt.', 'error'); return; }
+      if (value && !confirm('Tích suất cho TOÀN BỘ nhân sự cơ sở, kể cả người nghỉ / không làm ca này?')) return;
+
+      staffList.forEach(emp => {
+        const key = getMealRecordKey(dateISO, restaurantId, emp.id);
+        const rec = getMealRecord(dateISO, restaurantId, emp.id);
+        rec[shiftField] = value;
+        appState.staffMeals[key] = rec;
+        updatedRows.push(buildMealSheetRow(key, rec));
+      });
+
+      saveAppState();
+      postToGoogleSheets({ action: 'bulk_meals', rows: updatedRows });
+      renderMealSection();
+      showToast(`Đã tích chọn toàn bộ ${shiftField === 's1' ? 'Ca 1' : 'Ca 2'}!`, 'success');
+    }
+
+    function setMealStatsPeriod(period) {
+      currentStatsPeriod = period;
+      ['day', 'month', 'year'].forEach(p => {
+        const btn = document.getElementById(`statsPeriod-${p}`);
+        if (p === period) {
+          btn.className = 'stats-period-btn px-3 py-1 rounded-lg text-xs font-bold bg-white text-mindful-green shadow-sm';
+        } else {
+          btn.className = 'stats-period-btn px-3 py-1 rounded-lg text-xs font-bold text-slate-600';
+        }
+      });
+      renderMealStatistics();
+    }
+
+    function renderMealStatistics() {
+      const selectedDate = document.getElementById('mealDateInput').value || formatDateISO(new Date());
+      const selectedRest = document.getElementById('mealRestaurantSelect').value;
+      const scope = document.getElementById('mealStatsScope').value;
+
+      const yearPrefix = selectedDate.slice(0, 4);
+      const monthPrefix = selectedDate.slice(0, 7);
+
+      const records = Object.values(appState.staffMeals).filter(r => {
+        if (scope === 'selected' && r.restaurantId !== selectedRest) return false;
+        return (mealN(r.s1) + mealN(r.s2) + mealN(r.ot) > 0);
+      });
+
+      let dayTotal = 0, monthTotal = 0, yearTotal = 0;
+      const activeDaysInMonth = new Set();
+
+      records.forEach(r => {
+        const meals = (mealN(r.s1)) + (mealN(r.s2)) + (mealN(r.ot));
+        if (r.date === selectedDate) dayTotal += meals;
+        if (r.date.startsWith(monthPrefix)) {
+          monthTotal += meals;
+          activeDaysInMonth.add(r.date);
+        }
+        if (r.date.startsWith(yearPrefix)) yearTotal += meals;
+      });
+
+      const avgPerDay = activeDaysInMonth.size > 0 ? (monthTotal / activeDaysInMonth.size).toFixed(1) : 0;
+
+      document.getElementById('statKpiDay').textContent = `${dayTotal} suất`;
+      document.getElementById('statKpiMonth').textContent = `${monthTotal} suất`;
+      document.getElementById('statKpiYear').textContent = `${yearTotal} suất`;
+      document.getElementById('statKpiAvg').textContent = `${avgPerDay} suất`;
+
+      const groups = {};
+      records.forEach(r => {
+        let groupKey = '';
+        let label = '';
+        if (currentStatsPeriod === 'day') {
+          if (!r.date.startsWith(monthPrefix)) return;
+          groupKey = r.date;
+          label = `Ngày ${formatDateVN(r.date)}`;
+        } else if (currentStatsPeriod === 'month') {
+          if (!r.date.startsWith(yearPrefix)) return;
+          groupKey = r.date.slice(0, 7);
+          const [y, m] = groupKey.split('-');
+          label = `Tháng ${m}/${y}`;
+        } else {
+          groupKey = r.date.slice(0, 4);
+          label = `Năm ${groupKey}`;
+        }
+
+        if (!groups[groupKey]) {
+          groups[groupKey] = { label, s1: 0, s2: 0, ot: 0, total: 0 };
+        }
+        groups[groupKey].s1 += mealN(r.s1);
+        groups[groupKey].s2 += mealN(r.s2);
+        groups[groupKey].ot += mealN(r.ot);
+        groups[groupKey].total += (mealN(r.s1)) + (mealN(r.s2)) + (mealN(r.ot));
+      });
+
+      const sortedRows = Object.entries(groups)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .map(entry => entry[1]);
+
+      const maxTotal = sortedRows.reduce((m, r) => Math.max(m, r.total), 1);
+      const tbody = document.getElementById('mealStatsTableBody');
+
+      if (sortedRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-8 text-center text-slate-400 text-xs">
+              Chưa có dữ liệu cơm ca trong kỳ thống kê này.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = sortedRows.map(row => {
+          const pct = Math.round((row.total / maxTotal) * 100);
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2.5 px-4 font-bold text-mindful-green">${row.label}</td>
+              <td class="py-2.5 px-4 text-center">${row.s1}</td>
+              <td class="py-2.5 px-4 text-center">${row.s2}</td>
+              <td class="py-2.5 px-4 text-center">${row.ot}</td>
+              <td class="py-2.5 px-4 text-right font-extrabold text-slate-900">${row.total} suất</td>
+              <td class="py-2.5 px-4">
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div class="bg-mindful-gold h-2 rounded-full" style="width: ${pct}%"></div>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function exportStaffMealExcel() {
+      const restaurantId = document.getElementById('mealRestaurantSelect').value;
+      const restaurantName = appState.restaurants.find(r => r.id === restaurantId)?.name || 'NhaHang';
+      const dateISO = document.getElementById('mealDateInput').value;
+      const monthPrefix = dateISO.slice(0, 7);
+
+      const records = Object.values(appState.staffMeals).filter(r =>
+        r.restaurantId === restaurantId && r.date.startsWith(monthPrefix) && (mealN(r.s1) + mealN(r.s2) + mealN(r.ot) > 0)
+      );
+
+      let rowsHTML = records
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((r, i) => {
+          const emp = appState.employees.find(e => e.id === r.staffId);
+          const total = (mealN(r.s1)) + (mealN(r.s2)) + (mealN(r.ot));
+          return `
+            <tr>
+              <td style="border:1px solid #000;text-align:center;">${i + 1}</td>
+              <td style="border:1px solid #000;text-align:center;">${formatDateVN(r.date)}</td>
+              <td style="border:1px solid #000;">${emp ? escapeHTML(emp.code) : ''}</td>
+              <td style="border:1px solid #000;">${emp ? escapeHTML(emp.name) : 'Tổng suất ăn'}</td>
+              <td style="border:1px solid #000;">${emp ? escapeHTML(emp.role) : ''}</td>
+              <td style="border:1px solid #000;text-align:center;">${mealN(r.s1)}</td>
+              <td style="border:1px solid #000;text-align:center;">${mealN(r.s2)}</td>
+              <td style="border:1px solid #000;text-align:center;">${mealN(r.ot)}</td>
+              <td style="border:1px solid #000;text-align:center;font-weight:bold;">${total}</td>
+              <td style="border:1px solid #000;">${escapeHTML(r.note)}</td>
+            </tr>
+          `;
+        }).join('');
+
+      const excelHTML = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head><meta charset="UTF-8" /></head>
+        <body style="font-family:'Times New Roman',serif;">
+          <h3>CÔNG TY CỔ PHẦN TMDV MINDFUL MEALS - BẢNG THỐNG KÊ CƠM CA THÁNG ${monthPrefix}</h3>
+          <p><strong>Nhà hàng:</strong> ${escapeHTML(restaurantName)}</p>
+          <table style="border-collapse:collapse;width:100%;">
+            <thead>
+              <tr style="background:#12372A;color:#fff;font-weight:bold;">
+                <th style="border:1px solid #000;">STT</th>
+                <th style="border:1px solid #000;">Ngày</th>
+                <th style="border:1px solid #000;">Mã NV</th>
+                <th style="border:1px solid #000;">Họ và tên</th>
+                <th style="border:1px solid #000;">Chức danh</th>
+                <th style="border:1px solid #000;">Ca 1</th>
+                <th style="border:1px solid #000;">Ca 2</th>
+                <th style="border:1px solid #000;">Tăng ca</th>
+                <th style="border:1px solid #000;">Tổng suất</th>
+                <th style="border:1px solid #000;">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHTML}</tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BaoCao_ComCa_${restaurantName.replace(/\s+/g, '_')}_${monthPrefix}.xls`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Đã xuất báo cáo thống kê cơm ca tháng!', 'success');
+    }
+
+    // =========================================================================
+    // 9. MODULE 3 LOGIC: HR AUDIT & MASTER DATA
+    // =========================================================================
+    function renderAuditLog() {
+      const isBranchLocked = authSession && authSession.role === 'branch' && authSession.lockedBranchId;
+      const filterRest = isBranchLocked ? authSession.lockedBranchId : (document.getElementById('auditRestaurantFilter')?.value || 'ALL');
+      const todayISO = formatDateISO(new Date());
+
+      const filteredLogs = appState.focLogs.filter(l => filterRest === 'ALL' || l.restaurantId === filterRest);
+      const todayLogs = filteredLogs.filter(l => l.date === todayISO);
+      const unsignedLogs = filteredLogs.filter(l => !l.verificationData);
+
+      const todayDiscountSum = todayLogs.reduce((s, l) => s + (Number(l.discountAmount) || 0), 0);
+
+      const todayMeals = Object.values(appState.staffMeals).filter(m =>
+        m.date === todayISO && (filterRest === 'ALL' || m.restaurantId === filterRest)
+      );
+      const todayMealSum = todayMeals.reduce((s, m) => s + (m.s1 ? 1 : 0) + (m.s2 ? 1 : 0) + (m.ot ? 1 : 0), 0);
+
+      document.getElementById('auditTodayFocCount').textContent = `${todayLogs.length} lượt`;
+      document.getElementById('auditTodayFocAmount').textContent = formatVND(todayDiscountSum);
+      document.getElementById('auditUnsignedCount').textContent = `${unsignedLogs.length} lượt`;
+      document.getElementById('auditTodayMealCount').textContent = `${todayMealSum} suất`;
+
+      const tbody = document.getElementById('auditRecentFocBody');
+      const recentList = [...filteredLogs].reverse().slice(0, 15);
+
+      if (recentList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400">Chưa có giao dịch FOC nào được ghi nhận.</td></tr>`;
+      } else {
+        tbody.innerHTML = recentList.map(l => {
+          const restName = appState.restaurants.find(r => r.id === l.restaurantId)?.name || l.restaurantId;
+          const signedBadge = l.verificationData
+            ? `<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">Đã xác nhận</span>`
+            : `<span class="px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 font-semibold">Chưa ký</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2 px-3">${formatDateVN(l.date)}</td>
+              <td class="py-2 px-3 font-medium text-slate-700">${escapeHTML(restName)}</td>
+              <td class="py-2 px-3 font-bold text-mindful-green">${escapeHTML(l.staffNameTitle)}</td>
+              <td class="py-2 px-3 font-semibold">${escapeHTML(l.type)}</td>
+              <td class="py-2 px-3 font-mono">${escapeHTML(l.billCode)}</td>
+              <td class="py-2 px-3 text-right font-bold text-emerald-700">${formatNumberPlain(l.discountAmount)}</td>
+              <td class="py-2 px-3 text-center">${signedBadge}</td>
+              <td class="py-2 px-3 text-slate-600">${escapeHTML(l.cashier)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderHRSection() {
+      renderAuditLog();
+
+      const adminPinEl = document.getElementById('adminMasterPinInput');
+      if (adminPinEl) adminPinEl.value = appState.adminPin || '';
+
+      const restUI = document.getElementById('restaurantListUI');
+      restUI.innerHTML = appState.restaurants.map(r => `
+        <li class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-mindful-green text-xs sm:text-sm"><i class="fa-solid fa-location-dot text-mindful-gold mr-1.5"></i>${escapeHTML(r.name)}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded bg-mindful-goldLight border border-mindful-gold/50 text-[11px] font-mono font-bold text-mindful-bronze">PIN: ${escapeHTML(r.pin || '')}</span>
+              ${appState.restaurants.length > 1 ? `
+                <button onclick="deleteRestaurant('${r.id}')" title="Xóa nhà hàng" class="text-red-500 hover:text-red-700 text-xs p-1">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/70">
+            <span class="text-[10px] font-mono text-slate-400 truncate max-w-[180px]">?branch=${escapeHTML(r.id)}</span>
+            <button type="button" onclick="copyBranchLink('${r.id}')" class="px-2.5 py-1 rounded-lg bg-mindful-green hover:bg-mindful-greenLight text-white text-[11px] font-semibold transition flex items-center gap-1">
+              <i class="fa-solid fa-link text-mindful-gold"></i>
+              <span>Copy Link Riêng</span>
+            </button>
+          </div>
+        </li>
+      `).join('');
+
+      renderHRTable();
+    }
+
+    function handleAddRestaurant(e) {
+      e.preventDefault();
+      const input = document.getElementById('newRestaurantName');
+      const pinInput = document.getElementById('newRestaurantPin');
+      const name = input.value.trim();
+      const pin = pinInput.value.trim() || String(Math.floor(1000 + Math.random() * 9000));
+      if (!name) return;
+
+      appState.restaurants.push({ id: 'rest_' + Date.now(), name, pin });
+      saveAppState();
+      postToGoogleSheets({
+        action: 'sync_master',
+        restaurants: appState.restaurants.map(r => [r.id, r.name, r.pin || ''])
+      });
+      input.value = '';
+      pinInput.value = '';
+      populateRestaurantDropdowns();
+      renderHRSection();
+      showToast(`Đã thêm "${name}" (PIN: ${pin})!`, 'success');
+    }
+
+    function deleteRestaurant(id) {
+      appState.restaurants = appState.restaurants.filter(r => r.id !== id);
+      saveAppState();
+      postToGoogleSheets({
+        action: 'sync_master',
+        restaurants: appState.restaurants.map(r => [r.id, r.name, r.pin || ''])
+      });
+      populateRestaurantDropdowns();
+      renderHRSection();
+      showToast('Đã xóa nhà hàng khỏi danh sách.', 'info');
+    }
+
+    function autoFillQuotaByRole(roleVal) {
+      const r = roleVal.toLowerCase();
+      const quotaInput = document.getElementById('hrStaffQuota');
+      if (r.includes('tổng giám đốc') || r.includes('ceo')) {
+        quotaInput.value = 10000000;
+      } else if (r.includes('ban điều hành')) {
+        quotaInput.value = 5000000;
+      } else if (r.includes('quản lý nhà hàng')) {
+        quotaInput.value = 1000000;
+      }
+    }
+
+    function handleAddStaff(e) {
+      e.preventDefault();
+      const code = document.getElementById('hrStaffCode').value.trim().toUpperCase();
+      const name = document.getElementById('hrStaffName').value.trim();
+      const phone = document.getElementById('hrStaffPhone').value.trim();
+      const role = document.getElementById('hrStaffRole').value.trim();
+      const monthlyQuota = Math.max(0, Number(document.getElementById('hrStaffQuota').value) || 0);
+      const restaurantId = document.getElementById('hrStaffRestaurant').value;
+
+      appState.employees.push({
+        id: 'emp_' + Date.now(),
+        code,
+        name,
+        phone,
+        role,
+        monthlyQuota,
+        restaurantId
+      });
+      saveAppState();
+      postToGoogleSheets({
+        action: 'sync_master',
+        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || ''])
+      });
+
+      document.getElementById('hrStaffCode').value = '';
+      document.getElementById('hrStaffName').value = '';
+      document.getElementById('hrStaffPhone').value = '';
+      document.getElementById('hrStaffRole').value = '';
+      document.getElementById('hrStaffQuota').value = '0';
+
+      renderHRTable();
+      showToast(`Đã thêm nhân sự ${name} vào danh mục!`, 'success');
+    }
+
+    function deleteStaff(id) {
+      if (!confirm('Xóa nhân sự này khỏi danh mục? Nhân viên nghỉ việc nên giữ lại hồ sơ, chỉ xóa khi nhập nhầm.')) return;
+      appState.employees = appState.employees.filter(e => e.id !== id);
+      saveAppState();
+      postToGoogleSheets({
+        action: 'sync_master',
+        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || ''])
+      });
+      renderHRTable();
+      showToast('Đã xóa nhân sự khỏi danh sách.', 'info');
+    }
+
+    function renderHRTable() {
+      const query = document.getElementById('hrSearchInput').value.trim().toLowerCase();
+      const currentMonthISO = formatDateISO(new Date());
+      const isBranchLocked = authSession && authSession.role === 'branch' && authSession.lockedBranchId;
+
+      const list = visibleEmployees().filter(emp =>
+        emp.name.toLowerCase().includes(query) ||
+        emp.code.toLowerCase().includes(query) ||
+        emp.phone.includes(query) ||
+        emp.role.toLowerCase().includes(query)
+      );
+
+      document.getElementById('hrTotalCountBadge').textContent = `${list.length} nhân sự`;
+
+      const tbody = document.getElementById('hrStaffTableBody');
+      tbody.innerHTML = list.map(emp => {
+        const restName = appState.restaurants.find(r => r.id === emp.restaurantId)?.name || 'Toàn hệ thống';
+        const used = getMonthlyMgrCreditUsed(emp.id, currentMonthISO);
+        const remaining = Math.max(0, emp.monthlyQuota - used);
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="px-3 py-2.5 font-mono font-bold text-slate-700">${escapeHTML(emp.code)}</td>
+            <td class="px-3 py-2.5 font-bold text-mindful-green">${escapeHTML(emp.name)}</td>
+            <td class="px-3 py-2.5 font-mono text-slate-600">${isBranchLocked ? '—' : escapeHTML(emp.phone)}</td>
+            <td class="px-3 py-2.5 text-slate-700">${escapeHTML(emp.role)}</td>
+            <td class="px-3 py-2.5 text-slate-500">${escapeHTML(emp.unit || restName)}</td>
+            <td class="px-3 py-2.5 text-right font-semibold">${emp.monthlyQuota > 0 ? formatVND(emp.monthlyQuota) : '---'}</td>
+            <td class="px-3 py-2.5 text-right font-bold ${emp.monthlyQuota > 0 ? 'text-mindful-bronze' : 'text-slate-400'}">${emp.monthlyQuota > 0 ? formatVND(remaining) : '---'}</td>
+            <td class="px-3 py-2.5 text-center">
+              ${isBranchLocked ? '<span class="text-[10px] text-slate-400">Chỉ xem</span>' : `
+                <button onclick="deleteStaff('${emp.id}')" class="text-red-500 hover:text-red-700 p-1">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Đọc danh sách nhân sự: nhận .xlsx/.xls/.csv/.txt, tự dò dòng tiêu đề theo tên cột (không phụ thuộc thứ tự cột)
+    function parseStaffRows(rows) {
+      const norm = v => String(v == null ? '' : v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim();
+      const rules = {
+        code: /^(ma nv|ma nhan vien|ma so nv|ma)$/, name: /(ho va ten|ho ten|ten nhan vien|^nhan vien$)/,
+        role: /(chuc danh|chuc vu|vi tri)/, unit: /(don vi|nha hang|co so|bo phan)/,
+        phone: /(so dien thoai|sdt|dien thoai|^phone)/, quota: /(mgrcredit|han muc)/
+      };
+      let map = null, start = 0;
+      for (let i = 0; i < Math.min(rows.length, 20); i++) {
+        const m = {};
+        (rows[i] || []).forEach((c, idx) => { const t = norm(c); for (const k in rules) if (m[k] === undefined && rules[k].test(t)) m[k] = idx; });
+        if (m.code !== undefined && m.name !== undefined) { map = m; start = i + 1; break; }
+      }
+      if (!map) { map = { code: 1, name: 2, role: 3, unit: 4, phone: 6, quota: 7 }; start = 1; } // mẫu cũ: STT, Mã NV, Họ tên, Chức danh, Đơn vị, Email, SĐT, MGRCREDIT
+      const get = (r, k) => map[k] === undefined ? '' : String(r[map[k]] == null ? '' : r[map[k]]).trim();
+      const out = []; let skipped = 0;
+      for (let i = start; i < rows.length; i++) {
+        const r = rows[i] || [];
+        const code = get(r, 'code').toUpperCase(), name = get(r, 'name');
+        if (!code && !name) continue;
+        if (!code || !name || /[\uFFFD]/.test(code + name)) { skipped++; continue; }
+        let phone = get(r, 'phone').replace(/\D/g, '');
+        if (phone.length === 9) phone = '0' + phone; // Excel làm mất số 0 đầu
+        out.push({ code, name, phone, role: get(r, 'role') || 'Nhân viên', unit: get(r, 'unit'), monthlyQuota: Number(get(r, 'quota').replace(/\D/g, '')) || 0 });
+      }
+      return { out, skipped };
+    }
+
+    function importStaffCSV(event) {
+      const input = event.target, file = input.files[0];
+      if (!file) return;
+      const isText = /\.(csv|txt)$/i.test(file.name);
+      if (!isText && typeof XLSX === 'undefined') {
+        showToast('Chưa tải được thư viện đọc Excel (cần Internet). Kiểm tra mạng rồi tải lại trang.', 'error');
+        input.value = ''; return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const wb = isText ? XLSX.read(e.target.result, { type: 'string' }) : XLSX.read(e.target.result, { type: 'array' });
+          let recs = [], skipped = 0;
+          wb.SheetNames.forEach(n => {
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' });
+            const r = parseStaffRows(rows); recs = recs.concat(r.out); skipped += r.skipped;
+          });
+          if (recs.length === 0) { showToast('Không đọc được nhân sự nào. Kiểm tra file có cột "Mã NV" và "Họ và tên" ở dòng tiêu đề.', 'error'); return; }
+          const replaceAll = appState.employees.length > 0 && confirm(`Đọc được ${recs.length} nhân sự.\n\nOK = THAY THẾ toàn bộ danh sách hiện có bằng file này (dùng để dọn dữ liệu lỗi).\nHủy = chỉ bổ sung/cập nhật theo Mã NV, giữ nguyên người cũ.`);
+          const defaultRestId = appState.restaurants[0]?.id || 'rest_issho_01';
+          let unmatched = 0, added = 0, updated = 0;
+          const list = replaceAll ? [] : appState.employees;
+          recs.forEach((x, idx) => {
+            const unit = x.unit.toLowerCase();
+            const rest = appState.restaurants.find(r => unit && (r.name.toLowerCase().includes(unit) || unit.includes(r.name.split(' - ')[0].trim().toLowerCase())));
+            if (!rest) unmatched++;
+            const rec = { code: x.code, name: x.name, phone: x.phone, role: x.role, monthlyQuota: x.monthlyQuota, restaurantId: rest ? rest.id : '', unit: x.unit || (rest ? rest.name.split(' - ')[0] : '') };
+            const old = (replaceAll ? appState.employees : list).find(o => o.code === rec.code);
+            if (replaceAll) { list.push({ id: old ? old.id : 'emp_' + Date.now() + '_' + idx, ...rec }); added++; }
+            else if (old) { Object.assign(old, rec); updated++; }
+            else { list.push({ id: 'emp_' + Date.now() + '_' + idx, ...rec }); added++; }
+          });
+          appState.employees = list;
+          saveAppState();
+          postToGoogleSheets({ action: 'sync_master', employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '']) });
+          renderHRTable();
+          showToast(`Import xong: ${added} thêm mới, ${updated} cập nhật${skipped ? `, ${skipped} dòng lỗi bị bỏ qua` : ''}.${unmatched ? ` ${unmatched} dòng không thuộc nhà hàng nào (công ty/ban điều hành) nên để "Toàn hệ thống" và hiển thị theo cột Đơn vị.` : ''}`, unmatched || skipped ? 'info' : 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Lỗi đọc file: ' + err.message, 'error');
+        }
+        input.value = '';
+      };
+      if (isText) reader.readAsText(file, 'UTF-8'); else reader.readAsArrayBuffer(file);
+    }
+
+    function exportFullBackup() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MindfulHoldings_Backup_${formatDateISO(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Đã tải xuống bản sao lưu toàn bộ dữ liệu!', 'success');
+    }
+
+    function importFullBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.restaurants && parsed.employees) {
+            appState = normalizeAppState(parsed);
+            saveAppState();
+            applyBranchLockUI();
+            showToast('Đã khôi phục dữ liệu thành công!', 'success');
+          } else {
+            showToast('File JSON không đúng định dạng hệ thống.', 'error');
+          }
+        } catch (err) {
+          showToast('Lỗi đọc file JSON sao lưu.', 'error');
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // =========================================================================
+    // 10. MODALS & TOAST HELPERS
+    // =========================================================================
+    function openPolicyModal() {
+      document.getElementById('policyModal').classList.remove('hidden');
+    }
+    function closePolicyModal() {
+      document.getElementById('policyModal').classList.add('hidden');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      let colors = 'bg-mindful-green text-white border-mindful-gold';
+      let icon = 'fa-circle-info';
+      if (type === 'success') {
+        colors = 'bg-emerald-800 text-white border-emerald-400';
+        icon = 'fa-circle-check';
+      } else if (type === 'error') {
+        colors = 'bg-red-700 text-white border-red-300';
+        icon = 'fa-triangle-exclamation';
+      }
+      toast.className = `${colors} border-l-4 px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-medium flex items-center gap-2.5 max-w-sm transition-all duration-300`;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${escapeHTML(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // =========================================================================
+    // 11. BOOTSTRAP ON LOAD
+    // =========================================================================
+    window.onload = function () {
+      const today = new Date();
+      const todayISO = formatDateISO(today);
+      const monday = getMondayOfWeek(today);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      document.getElementById('focWeekStart').value = formatDateISO(monday);
+      document.getElementById('focWeekEnd').value = formatDateISO(sunday);
+      document.getElementById('focUsageDate').value = todayISO;
+      document.getElementById('mealDateInput').value = todayISO;
+
+      populateRestaurantDropdowns();
+      initSignatureCanvas();
+      updateCloudStatusUI(false);
+      initBranchAccessControl();
+    };
+  </script>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v3.0</div>
+</body>
+</html>

@@ -1119,18 +1119,29 @@
       '  return String(found.Access_PIN || "") === String(pin);',
       '}',
       '',
+      'function gate(ss, branch, pin, secret) {',
+      '  const key = "fail_" + (branch || "ALL");',
+      '  const cache = CacheService.getScriptCache();',
+      '  if (Number(cache.get(key) || 0) >= 5) return "Nhập sai quá nhiều lần, thử lại sau 15 phút";',
+      '  let msg = "";',
+      '  if (!branch || branch === "ALL") {',
+      '    if (!API_SECRET || secret !== API_SECRET) msg = "Sai mã bảo mật API_SECRET";',
+      '    else if (!verifyBranchAccess(ss, "ALL", pin)) msg = "Sai mã PIN Admin";',
+      '  } else if (!verifyBranchAccess(ss, branch, pin)) {',
+      '    msg = "Sai mã PIN truy cập cơ sở!";',
+      '  }',
+      '  if (msg) { cache.put(key, String(Number(cache.get(key) || 0) + 1), 900); return msg; }',
+      '  cache.remove(key);',
+      '  return "";',
+      '}',
+      '',
       'function doGet(e) {',
       '  const params = (e && e.parameter) || {};',
-      '  const secret = params.secret || "";',
-      '  if (!API_SECRET || secret !== API_SECRET) {',
-      '    return jsonResponse({ status: "error", message: "Sai mã bảo mật API_SECRET" });',
-      '  }',
       '  const ss = setupSheets();',
       '  const branchId = params.branch || "ALL";',
-      '  const pin = params.pin || "";',
-      '  if (!verifyBranchAccess(ss, branchId, pin)) {',
-      '    return jsonResponse({ status: "error", message: "Sai mã PIN truy cập cơ sở!" });',
-      '  }',
+      '  const msg = gate(ss, branchId, params.pin || "", params.secret || "");',
+      '  if (msg) return jsonResponse({ status: "error", message: msg });',
+      '  if (params.action === "login") return jsonResponse({ status: "ok", login: true });',
       '  let restaurants = readSheetObjects(ss.getSheetByName("Restaurants"));',
       '  let focLogs = readSheetObjects(ss.getSheetByName("FOC_Logs"));',
       '  let staffMeals = readSheetObjects(ss.getSheetByName("Staff_Meals"));',
@@ -1169,13 +1180,11 @@
       'function doPost(e) {',
       '  try {',
       '    const payload = JSON.parse(e.postData.contents);',
-      '    if (!API_SECRET || payload.secret !== API_SECRET) {',
-      '      return jsonResponse({ status: "error", message: "Sai mã bảo mật API_SECRET" });',
-      '    }',
       '    const ss = setupSheets();',
       '    const action = payload.action;',
       '    const branch = payload.branch || "ALL";',
-      '    if (!verifyBranchAccess(ss, branch, payload.pin || "")) return jsonResponse({ status: "error", message: "Sai mã PIN truy cập" });',
+      '    const msg = gate(ss, branch, payload.pin || "", payload.secret || "");',
+      '    if (msg) return jsonResponse({ status: "error", message: msg });',
       '    if (branch !== "ALL") {',
       '      if (action === "set_meal_config") return jsonResponse({ status: "error", message: "Chỉ Admin được đặt PIN quản lý" });',
       '      if (action === "upsert_menu_item" && String(payload.row[1]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
@@ -1276,6 +1285,7 @@
     };
 
     let appState = loadAppState();
+    const FIXED_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby7PPExzbCDfJUa0GZzmCgYC9MXhgrIPe8ocGA8Nnp_RbqJW-ieAa0kTEO49QOL9Gf6xg/exec';
     let cloudConfig = loadCloudConfig();
     let authSession = { isAuthenticated: false, role: 'admin', lockedBranchId: null, pin: '' };
     let currentPendingSignature = null;
@@ -1461,7 +1471,17 @@
       const b = authSession.role === 'branch' && authSession.lockedBranchId;
       return appState.employees; // danh sách thụ hưởng dùng chung toàn chuỗi
     }
-    function handleAccessGateSubmit(e) {
+    let gateServerMsg = '';
+    async function serverLoginBranch(branch, pin) {
+      gateServerMsg = '';
+      try {
+        const r = await fetch(`${cloudConfig.webAppUrl}?action=login&branch=${encodeURIComponent(branch)}&pin=${encodeURIComponent(pin)}`);
+        const d = await r.json();
+        if (d.status === 'ok') return true;
+        gateServerMsg = d.message || ''; return false;
+      } catch (err) { return null; } // mất mạng: dùng đối chiếu trên máy
+    }
+    async function handleAccessGateSubmit(e) {
       e.preventDefault();
       if (Date.now() < Number(sessionStorage.getItem('gate_lock') || 0)) { showToast('Đang bị khóa do nhập sai nhiều lần, thử lại sau ít phút.', 'error'); return; }
       const enteredPin = document.getElementById('gatePinInput').value.trim();
@@ -1470,7 +1490,12 @@
       if (requestedBranch) {
         const rest = appState.restaurants.find(r => r.id === requestedBranch);
         const expectedPin = rest ? String(rest.pin || '') : '';
-        if ((expectedPin && enteredPin === expectedPin) || (appState.adminPin && enteredPin === String(appState.adminPin))) {
+        let okBranch = !!(appState.adminPin && enteredPin === String(appState.adminPin));
+        if (!okBranch) {
+          const srv = cloudConfig.webAppUrl ? await serverLoginBranch(requestedBranch, enteredPin) : null;
+          okBranch = srv === true || (srv === null && !!(expectedPin && enteredPin === expectedPin));
+        }
+        if (okBranch) {
           authSession = {
             isAuthenticated: true,
             role: 'branch',
@@ -1483,7 +1508,7 @@
           if (cloudConfig.webAppUrl) syncFromGoogleSheets(false);
           showToast(`Đã mở khóa cơ sở: ${rest ? rest.name : requestedBranch}`, 'success');
         } else {
-          gateFail('Sai mã PIN truy cập của nhà hàng này!');
+          gateFail(gateServerMsg || 'Sai mã PIN truy cập của nhà hàng này!');
         }
       } else {
         if (!appState.adminPin) {
@@ -1612,9 +1637,9 @@
     function loadCloudConfig() {
       try {
         const saved = localStorage.getItem(CLOUD_CONFIG_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) { const c = JSON.parse(saved); if (FIXED_WEBAPP_URL) c.webAppUrl = FIXED_WEBAPP_URL; return c; }
       } catch (e) {}
-      return { webAppUrl: '', apiSecret: '', lastSync: null };
+      return { webAppUrl: FIXED_WEBAPP_URL, apiSecret: '', lastSync: null };
     }
 
     function saveCloudConfigToStorage() {
@@ -3742,6 +3767,6 @@
       showToast('Đã xuất báo cáo cơm ca tháng ' + month, 'success');
     }
   </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v4.0</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v5.0</div>
 </body>
 </html>

@@ -1090,7 +1090,10 @@
       '    "FOC_Logs": ["ID", "Restaurant_ID", "Restaurant_Name", "Usage_Date", "Staff_ID", "Staff_Name_Title", "Benefit_Type", "Bill_Code", "Bill_Amount", "Discount_Amount", "Extra_Amount", "Verification_Type", "Verification_Data", "Verified_At", "Cashier_Name", "Note", "Updated_At"],',
       '    "Staff_Meals": ["Record_Key", "Date", "Restaurant_ID", "Restaurant_Name", "Staff_ID", "Staff_Name", "Shift_1", "Shift_2", "Shift_OT", "Total_Meals", "Note", "Updated_At"],',
       '    "Employees": ["ID", "Code", "Name", "Phone", "Role", "Monthly_Quota", "Restaurant_ID", "Unit"],',
-      '    "Restaurants": ["ID", "Name", "Access_PIN"]',
+      '    "Restaurants": ["ID", "Name", "Access_PIN"],',
+      '    "Menu_Items": ["ID", "Restaurant_ID", "Name", "Group", "Ingredients_JSON", "Active", "Updated_At"],',
+      '    "Meal_Menus": ["Key", "Date", "Restaurant_ID", "Shift", "Items_JSON", "Updated_At"],',
+      '    "Meal_Config": ["Restaurant_ID", "Mgr_PIN_Hash"]',
       '  };',
       '  Object.keys(schemas).forEach(function(name) {',
       '    let sheet = ss.getSheetByName(name);',
@@ -1132,6 +1135,9 @@
       '  let focLogs = readSheetObjects(ss.getSheetByName("FOC_Logs"));',
       '  let staffMeals = readSheetObjects(ss.getSheetByName("Staff_Meals"));',
       '  let employees = readSheetObjects(ss.getSheetByName("Employees"));',
+      '  let menuItems = readSheetObjects(ss.getSheetByName("Menu_Items"));',
+      '  let mealMenus = readSheetObjects(ss.getSheetByName("Meal_Menus"));',
+      '  let mealConfig = readSheetObjects(ss.getSheetByName("Meal_Config"));',
       '  if (branchId && branchId !== "ALL") {',
       '    restaurants = restaurants.filter(function(r) { return String(r.ID) === String(branchId); });',
       '    const ym = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "yyyy-MM");',
@@ -1143,6 +1149,9 @@
       '    });',
       '    staffMeals = staffMeals.filter(function(r) { return String(r.Restaurant_ID) === String(branchId); });',
       '    employees = employees.map(function(r) { r.Phone = ""; return r; });',
+      '    menuItems = menuItems.filter(function(r) { return String(r.Restaurant_ID) === String(branchId); });',
+      '    mealMenus = mealMenus.filter(function(r) { return String(r.Restaurant_ID) === String(branchId); });',
+      '    mealConfig = mealConfig.filter(function(r) { return String(r.Restaurant_ID) === String(branchId); });',
       '  }',
       '  return jsonResponse({',
       '    status: "ok",',
@@ -1150,7 +1159,10 @@
       '    restaurants: restaurants,',
       '    employees: employees,',
       '    focLogs: focLogs,',
-      '    staffMeals: staffMeals',
+      '    staffMeals: staffMeals,',
+      '    menuItems: menuItems,',
+      '    mealMenus: mealMenus,',
+      '    mealConfig: mealConfig',
       '  });',
       '}',
       '',
@@ -1165,6 +1177,9 @@
       '    const branch = payload.branch || "ALL";',
       '    if (!verifyBranchAccess(ss, branch, payload.pin || "")) return jsonResponse({ status: "error", message: "Sai mã PIN truy cập" });',
       '    if (branch !== "ALL") {',
+      '      if (action === "set_meal_config") return jsonResponse({ status: "error", message: "Chỉ Admin được đặt PIN quản lý" });',
+      '      if (action === "upsert_menu_item" && String(payload.row[1]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
+      '      if (action === "upsert_meal_menu" && String(payload.row[2]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
       '      if (action === "push_all" || action === "sync_master") return jsonResponse({ status: "error", message: "Chỉ Admin được đồng bộ danh mục" });',
       '      if (action === "upsert_foc" && String(payload.row[1]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
       '      if (action === "upsert_meal" && String(payload.row[2]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
@@ -1176,6 +1191,12 @@
       '      deleteRowById(ss.getSheetByName("FOC_Logs"), 0, payload.id);',
       '    } else if (action === "upsert_meal") {',
       '      upsertRow(ss.getSheetByName("Staff_Meals"), 0, payload.row);',
+      '    } else if (action === "upsert_menu_item") {',
+      '      upsertRow(ss.getSheetByName("Menu_Items"), 0, payload.row);',
+      '    } else if (action === "upsert_meal_menu") {',
+      '      upsertRow(ss.getSheetByName("Meal_Menus"), 0, payload.row);',
+      '    } else if (action === "set_meal_config") {',
+      '      upsertRow(ss.getSheetByName("Meal_Config"), 0, payload.row);',
       '    } else if (action === "bulk_meals") {',
       '      const sheet = ss.getSheetByName("Staff_Meals");',
       '      (payload.rows || []).forEach(function(r) { upsertRow(sheet, 0, r); });',
@@ -1187,6 +1208,9 @@
       '      if (payload.employees) replaceAllRows(ss.getSheetByName("Employees"), payload.employees);',
       '      if (payload.focRows) replaceAllRows(ss.getSheetByName("FOC_Logs"), payload.focRows);',
       '      if (payload.mealRows) replaceAllRows(ss.getSheetByName("Staff_Meals"), payload.mealRows);',
+      '      if (payload.menuItemRows) replaceAllRows(ss.getSheetByName("Menu_Items"), payload.menuItemRows);',
+      '      if (payload.mealMenuRows) replaceAllRows(ss.getSheetByName("Meal_Menus"), payload.mealMenuRows);',
+      '      if (payload.configRows) replaceAllRows(ss.getSheetByName("Meal_Config"), payload.configRows);',
       '    }',
       '    return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });',
       '  } catch (err) {',
@@ -1309,6 +1333,9 @@
         adminPin: String(state.adminPin || ''),
         restaurants,
         employees,
+        menuItems: Array.isArray(state.menuItems) ? state.menuItems : [],
+        mealMenus: (state.mealMenus && typeof state.mealMenus === 'object') ? state.mealMenus : {},
+        mealConfig: (state.mealConfig && typeof state.mealConfig === 'object') ? state.mealConfig : {},
         focLogs,
         staffMeals
       };
@@ -1750,6 +1777,22 @@
           });
         }
 
+        if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
+          appState.menuItems = data.menuItems.map(m => {
+            let ing = []; try { ing = JSON.parse(m.Ingredients_JSON || '[]'); } catch (e) {}
+            return { id: String(m.ID), restaurantId: String(m.Restaurant_ID), name: String(m.Name || ''), group: String(m.Group || ''), ingredients: ing, active: !(m.Active === false || String(m.Active).toUpperCase() === 'FALSE') };
+          });
+        }
+        if (Array.isArray(data.mealMenus) && data.mealMenus.length > 0) {
+          appState.mealMenus = {};
+          data.mealMenus.forEach(m => {
+            let items = []; try { items = JSON.parse(m.Items_JSON || '[]'); } catch (e) {}
+            appState.mealMenus[String(m.Key)] = { date: normalizeDateString(m.Date), restaurantId: String(m.Restaurant_ID), shift: String(m.Shift), items };
+          });
+        }
+        if (Array.isArray(data.mealConfig) && data.mealConfig.length > 0) {
+          data.mealConfig.forEach(c => { if (c.Mgr_PIN_Hash) appState.mealConfig[String(c.Restaurant_ID)] = String(c.Mgr_PIN_Hash); });
+        }
         saveAppState();
         populateRestaurantDropdowns();
         applyBranchLockUI();
@@ -1843,7 +1886,10 @@
         restaurants: appState.restaurants.map(r => [r.id, r.name, r.pin || '']),
         employees: appState.employees.map(e => [e.id, e.code, e.name, e.phone, e.role, e.monthlyQuota, e.restaurantId, e.unit || '']),
         focRows,
-        mealRows
+        mealRows,
+        menuItemRows: (appState.menuItems || []).map(mealItemRow),
+        mealMenuRows: Object.entries(appState.mealMenus || {}).map(([k, m]) => mealMenuRow(k, m)),
+        configRows: Object.entries(appState.mealConfig || {})
       });
       updateCloudStatusUI(false);
       showToast('Đã đẩy toàn bộ dữ liệu lên Google Sheets thành công!', 'success');
@@ -2822,27 +2868,35 @@
     }
 
     function renderMealSection() {
-      const restaurantId = document.getElementById('mealRestaurantSelect').value;
-      const dateISO = document.getElementById('mealDateInput').value || formatDateISO(new Date());
+      initMealV4();
+      const { rest, date } = mealCtx();
       const sf = document.getElementById('mealSelfStaffSelect')?.closest('form');
       if (sf) sf.classList.add('hidden');
-      document.querySelectorAll('[onclick^="bulkCheckShift"]').forEach(b => b.parentElement.classList.add('hidden'));
-      const rec = getMealRecord(dateISO, restaurantId, 'TOTAL');
-      const inp = (f) => `<input type="number" min="0" max="999" value="${mealN(rec[f])}" onchange="setMealTotal('${f}', this.value)" class="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-center text-sm font-bold" />`;
-      const total = mealN(rec.s1) + mealN(rec.s2) + mealN(rec.ot);
-      document.getElementById('mealChecklistBody').innerHTML = `
-        <tr>
-          <td class="py-3 px-4 text-center text-slate-500">1</td>
-          <td colspan="3" class="py-3 px-4 font-bold text-mindful-green">Tổng số suất ăn ngày ${formatDateVN(dateISO)} (quản lý chốt cuối mỗi ca)</td>
-          <td class="py-3 px-3 text-center">${inp('s1')}</td>
-          <td class="py-3 px-3 text-center">${inp('s2')}</td>
-          <td class="py-3 px-3 text-center">${inp('ot')}</td>
-          <td class="py-3 px-3 text-center"><span id="mealRowTotal" class="inline-block min-w-[28px] px-2 py-0.5 rounded-full text-xs font-extrabold bg-mindful-green text-white">${total}</span></td>
-          <td class="py-3 px-4"><input type="text" value="${escapeHTML(rec.note || '')}" onchange="setMealTotal('note', this.value)" placeholder="Ghi chú..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1 text-xs" /></td>
+      const list = mealStaffFor(rest, date);
+      let c1 = 0, c2 = 0, ct = 0;
+      const cb = (emp, rec, f) => `<input type="checkbox" ${mealN(rec[f]) ? 'checked' : ''} onchange="toggleMealShift('${emp.id}', '${f}', this.checked)" class="w-4 h-4 rounded text-mindful-green focus:ring-mindful-green cursor-pointer" />`;
+      const rows = list.map((emp, idx) => {
+        const rec = getMealRecord(date, rest, emp.id);
+        const t = mealN(rec.s1) + mealN(rec.s2) + mealN(rec.ot);
+        c1 += mealN(rec.s1); c2 += mealN(rec.s2); ct += t;
+        return `<tr class="${t > 0 ? 'bg-mindful-greenTint/35' : 'hover:bg-slate-50'}">
+          <td class="py-2.5 px-4 text-center text-slate-500 font-medium">${idx + 1}</td>
+          <td class="py-2.5 px-4 font-mono text-xs font-bold text-slate-700">${escapeHTML(emp.code)}</td>
+          <td class="py-2.5 px-4 font-bold text-mindful-green">${escapeHTML(emp.name)}${emp.restaurantId !== rest && emp.unit ? ` <span class="text-[10px] font-medium text-slate-400">(${escapeHTML(emp.unit)})</span>` : ''}</td>
+          <td class="py-2.5 px-4 text-xs text-slate-600">${escapeHTML(emp.role)}</td>
+          <td class="py-2.5 px-3 text-center">${cb(emp, rec, 's1')}</td>
+          <td class="py-2.5 px-3 text-center">${cb(emp, rec, 's2')}</td>
+          <td class="py-2.5 px-3 text-center">${cb(emp, rec, 'ot')}</td>
+          <td class="py-2.5 px-3 text-center"><span class="inline-block min-w-[28px] px-2 py-0.5 rounded-full text-xs font-extrabold ${t > 0 ? 'bg-mindful-green text-white' : 'bg-slate-100 text-slate-400'}">${t}</span></td>
+          <td class="py-2.5 px-4"><input type="text" value="${escapeHTML(rec.note || '')}" onchange="updateMealNote('${emp.id}', this.value)" placeholder="Ghi chú..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1 text-xs" /></td>
         </tr>`;
-      document.getElementById('mealCountS1').textContent = mealN(rec.s1);
-      document.getElementById('mealCountS2').textContent = mealN(rec.s2);
-      document.getElementById('mealCountTotal').textContent = total;
+      });
+      document.getElementById('mealChecklistBody').innerHTML = rows.join('') || `<tr><td colspan="9" class="py-6 text-center text-xs text-slate-400">Chưa có nhân viên thuộc nhà hàng này. Dùng ô "Thêm người từ nơi khác" phía trên.</td></tr>`;
+      document.getElementById('mealCountS1').textContent = c1;
+      document.getElementById('mealCountS2').textContent = c2;
+      document.getElementById('mealCountTotal').textContent = ct;
+      renderMealExtraBar(list);
+      renderMealMgr();
       renderMealStatistics();
     }
 
@@ -3490,7 +3544,204 @@
       updateCloudStatusUI(false);
       initBranchAccessControl();
     };
+  
+    // ===================== CƠM CA v4: menu & định lượng, báo cáo kế toán =====================
+    const MEAL_SHIFTS = [{ k: 's1', n: 'Ca 1 - Trưa (12h-12h45)' }, { k: 's2', n: 'Ca 2 - Tối (16h30-17h15)' }, { k: 'ot', n: 'Tăng ca' }];
+    let mealExtraIds = {}, mealItemsKey = '', mealEditId = null;
+    function mealCtx() { return { rest: document.getElementById('mealRestaurantSelect').value, date: document.getElementById('mealDateInput').value || formatDateISO(new Date()) }; }
+    function mealIsMgr(rest) { return authSession.role === 'admin' || sessionStorage.getItem('mealMgr_' + rest) === '1'; }
+    async function mealHash(t) {
+      try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mm|' + t)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+      catch (e) { let h = 0; for (const c of 'mm|' + t) h = (h * 31 + c.charCodeAt(0)) | 0; return 'f' + h; }
+    }
+    function mealItemRow(m) { return [m.id, m.restaurantId, m.name, m.group || '', JSON.stringify(m.ingredients || []), m.active !== false, new Date().toISOString()]; }
+    function mealMenuRow(k, m) { return [k, m.date, m.restaurantId, m.shift, JSON.stringify(m.items || []), new Date().toISOString()]; }
+    function fmtQty(n) { return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(n); }
+    function normUnit(q, u) { return u === 'kg' ? [q * 1000, 'g'] : u === 'l' ? [q * 1000, 'ml'] : [q, u]; }
+
+    function mealStaffFor(rest, date) {
+      const ids = new Set(appState.employees.filter(e => e.restaurantId === rest).map(e => e.id));
+      Object.values(appState.staffMeals).forEach(r => { if (r.date === date && r.restaurantId === rest && r.staffId !== 'TOTAL' && mealN(r.s1) + mealN(r.s2) + mealN(r.ot) > 0) ids.add(r.staffId); });
+      (mealExtraIds[date + '__' + rest] || []).forEach(i => ids.add(i));
+      return appState.employees.filter(e => ids.has(e.id));
+    }
+    function mealShiftCount(rest, date, f) {
+      return Object.values(appState.staffMeals).filter(r => r.date === date && r.restaurantId === rest && r.staffId !== 'TOTAL').reduce((a, r) => a + mealN(r[f]), 0);
+    }
+    function renderMealExtraBar(list) {
+      const host = document.getElementById('mealChecklistBody').closest('table').parentElement;
+      let bar = document.getElementById('mealExtraBar');
+      if (!bar) { bar = document.createElement('div'); bar.id = 'mealExtraBar'; bar.className = 'flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-200 bg-slate-50 text-xs'; host.parentNode.insertBefore(bar, host); }
+      const inList = new Set(list.map(e => e.id));
+      bar.innerHTML = `<span class="font-semibold text-slate-700">Thêm người từ nơi khác đến ăn tại nhà hàng này:</span>
+        <select id="mealExtraSel" class="rounded-lg border border-slate-300 px-2 py-1.5 bg-white max-w-[260px]"><option value="">-- Chọn nhân viên --</option>${appState.employees.filter(e => !inList.has(e.id)).map(e => `<option value="${e.id}">${escapeHTML(e.code)} - ${escapeHTML(e.name)}${e.unit ? ' (' + escapeHTML(e.unit) + ')' : ''}</option>`).join('')}</select>
+        <button type="button" onclick="addMealExtra()" class="px-3 py-1.5 rounded-lg bg-mindful-green text-white font-bold">Thêm vào danh sách</button>`;
+    }
+    function addMealExtra() {
+      const id = document.getElementById('mealExtraSel').value; if (!id) return;
+      const { rest, date } = mealCtx(); const k = date + '__' + rest;
+      mealExtraIds[k] = (mealExtraIds[k] || []).concat(id); renderMealSection();
+    }
+
+    function initMealV4() {
+      if (document.getElementById('mealMgrCard')) return;
+      let n = document.getElementById('mealChecklistBody');
+      while (n.parentElement.id !== 'section-meal') n = n.parentElement;
+      const card = document.createElement('div');
+      card.id = 'mealMgrCard';
+      card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4';
+      card.innerHTML = `<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
+          <div><h3 class="text-base font-bold text-mindful-green flex items-center gap-2"><i class="fa-solid fa-utensils text-mindful-gold"></i><span>Mục Quản Lý: Menu Món &amp; Định Lượng</span></h3>
+          <p class="text-xs text-slate-500">Quản lý nhập menu từng ca và định lượng nguyên liệu mỗi suất để tổng hợp chi phí cuối tháng cho Kế toán</p></div>
+          <button type="button" onclick="exportMealMonthXlsx()" class="px-3 py-2 rounded-xl bg-mindful-green text-white text-xs font-bold"><i class="fa-solid fa-file-excel mr-1"></i>Xuất báo cáo tháng cho Kế toán (Excel)</button></div>
+        <div id="mealMgrLock"></div><div id="mealMenuToday" class="space-y-3"></div><div id="mealItemsBox"></div>`;
+      n.parentNode.insertBefore(card, n.nextSibling);
+    }
+
+    function renderMealMgr() {
+      const { rest } = mealCtx(); const unlocked = mealIsMgr(rest); const admin = authSession.role === 'admin';
+      const lock = document.getElementById('mealMgrLock');
+      const lk = rest + '|' + unlocked + '|' + admin + '|' + !!appState.mealConfig[rest];
+      if (lock.dataset.k !== lk) {
+        lock.dataset.k = lk;
+        lock.innerHTML = unlocked
+          ? `<div class="flex flex-wrap items-center gap-3 text-xs"><span class="px-2.5 py-1 rounded-lg bg-mindful-greenTint text-mindful-green font-bold"><i class="fa-solid fa-lock-open mr-1"></i>${admin ? 'Admin HC-NS' : 'Đã mở khóa quản lý'}</span>
+              ${admin ? `<span class="text-slate-600">Đặt/đổi PIN quản lý cho nhà hàng đang chọn (6-8 số):</span><input id="mealMgrPinNew" type="password" maxlength="8" class="w-28 rounded-lg border border-slate-300 px-2 py-1.5" /><button type="button" onclick="setMealMgrPin()" class="px-3 py-1.5 rounded-lg bg-mindful-gold text-mindful-green font-bold">Lưu PIN quản lý</button>` : `<button type="button" onclick="lockMealMgr()" class="px-3 py-1.5 rounded-lg border border-slate-300 font-semibold">Khóa lại</button>`}</div>`
+          : `<div class="flex flex-wrap items-center gap-3 text-xs"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold"><i class="fa-solid fa-lock mr-1"></i>Chỉ quản lý được nhập menu &amp; định lượng</span>
+              <input id="mealMgrPinInput" type="password" maxlength="8" placeholder="PIN quản lý" class="w-32 rounded-lg border border-slate-300 px-2 py-1.5" /><button type="button" onclick="unlockMealMgr()" class="px-3 py-1.5 rounded-lg bg-mindful-green text-white font-bold">Mở khóa</button></div>`;
+      }
+      renderMealMenuToday();
+      const items = appState.menuItems.filter(i => i.restaurantId === rest && i.active !== false);
+      const ik = rest + '|' + unlocked + '|' + items.map(i => i.id + i.name + JSON.stringify(i.ingredients)).join(',');
+      const box = document.getElementById('mealItemsBox');
+      if (box.dataset.k === ik) return;
+      box.dataset.k = ik;
+      if (!unlocked) { box.innerHTML = ''; return; }
+      box.innerHTML = `<div class="border-t border-slate-100 pt-3 space-y-3">
+        <h4 class="text-sm font-bold text-mindful-green">Danh mục món &amp; định lượng (cho 1 suất ăn)</h4>
+        <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-50 text-slate-600 text-left"><th class="p-2">Món</th><th class="p-2">Nhóm</th><th class="p-2">Nguyên liệu - định lượng / suất</th><th class="p-2 w-24"></th></tr></thead><tbody class="divide-y divide-slate-100">
+        ${items.map(i => `<tr><td class="p-2 font-bold text-mindful-green">${escapeHTML(i.name)}</td><td class="p-2 text-slate-500">${escapeHTML(i.group || '')}</td><td class="p-2 text-slate-700">${i.ingredients.map(g => escapeHTML(g.name) + ' ' + fmtQty(g.qty) + g.unit).join('; ')}</td><td class="p-2 text-right whitespace-nowrap"><button type="button" onclick="editMealItem('${i.id}')" class="text-mindful-bronze font-bold mr-2">Sửa</button><button type="button" onclick="deleteMealItem('${i.id}')" class="text-red-500 font-bold">Xóa</button></td></tr>`).join('') || '<tr><td colspan="4" class="p-3 text-center text-slate-400">Chưa có món nào. Thêm món bên dưới.</td></tr>'}</tbody></table></div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+          <div class="text-xs font-bold text-slate-700" id="miFormTitle">Thêm món mới</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="mi_name" placeholder="Tên món *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" /><input id="mi_group" placeholder="Nhóm (VD: Món mặn, Canh, Rau...)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" /></div>
+          <div id="mi_ings" class="space-y-1.5"></div>
+          <div class="flex flex-wrap gap-2"><button type="button" onclick="addMealIngRow()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white">+ Thêm nguyên liệu</button><button type="button" onclick="saveMealItem()" class="px-3 py-1.5 rounded-lg bg-mindful-green text-white text-xs font-bold">Lưu món</button><button type="button" onclick="resetMealItemForm()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">Làm mới</button></div>
+        </div></div>`;
+      resetMealItemForm();
+    }
+    function addMealIngRow(name = '', qty = '', unit = 'g') {
+      const d = document.createElement('div'); d.className = 'grid grid-cols-12 gap-1.5 mi-ing';
+      d.innerHTML = `<input placeholder="Nguyên liệu" value="${escapeHTML(name)}" class="col-span-6 rounded-lg border border-slate-300 px-2 py-1.5 text-sm mi-n" /><input type="number" min="0" step="any" placeholder="Định lượng" value="${qty}" class="col-span-3 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-right mi-q" /><select class="col-span-2 rounded-lg border border-slate-300 px-1 py-1.5 text-sm mi-u">${['g', 'kg', 'ml', 'l', 'cái', 'quả', 'lát', 'miếng', 'bó', 'gói'].map(u => `<option ${u === unit ? 'selected' : ''}>${u}</option>`).join('')}</select><button type="button" onclick="this.parentElement.remove()" class="col-span-1 text-red-500 font-bold">×</button>`;
+      document.getElementById('mi_ings').appendChild(d);
+    }
+    function resetMealItemForm() {
+      mealEditId = null; document.getElementById('mi_name').value = ''; document.getElementById('mi_group').value = '';
+      document.getElementById('mi_ings').innerHTML = ''; addMealIngRow(); document.getElementById('miFormTitle').textContent = 'Thêm món mới';
+    }
+    function editMealItem(id) {
+      const it = appState.menuItems.find(i => i.id === id); if (!it) return;
+      mealEditId = id; document.getElementById('mi_name').value = it.name; document.getElementById('mi_group').value = it.group || '';
+      document.getElementById('mi_ings').innerHTML = ''; it.ingredients.forEach(g => addMealIngRow(g.name, g.qty, g.unit));
+      document.getElementById('miFormTitle').textContent = 'Sửa món: ' + it.name + ' (các ngày đã ghi giữ nguyên định lượng cũ)';
+    }
+    function saveMealItem() {
+      const { rest } = mealCtx(); if (!mealIsMgr(rest)) return;
+      const name = document.getElementById('mi_name').value.trim();
+      const ings = Array.from(document.querySelectorAll('#mi_ings .mi-ing')).map(r => ({ name: r.querySelector('.mi-n').value.trim(), qty: Number(r.querySelector('.mi-q').value) || 0, unit: r.querySelector('.mi-u').value })).filter(g => g.name || g.qty);
+      if (!name) { showToast('Nhập tên món.', 'error'); return; }
+      if (ings.length === 0 || ings.some(g => !g.name || g.qty <= 0)) { showToast('Mỗi nguyên liệu phải có tên và định lượng lớn hơn 0.', 'error'); return; }
+      let it = mealEditId && appState.menuItems.find(i => i.id === mealEditId);
+      if (it) Object.assign(it, { name, group: document.getElementById('mi_group').value.trim(), ingredients: ings });
+      else { it = { id: 'mi_' + Date.now(), restaurantId: rest, name, group: document.getElementById('mi_group').value.trim(), ingredients: ings, active: true }; appState.menuItems.push(it); }
+      saveAppState(); postToGoogleSheets({ action: 'upsert_menu_item', row: mealItemRow(it) });
+      showToast('Đã lưu món: ' + name, 'success'); renderMealMgr();
+    }
+    function deleteMealItem(id) {
+      const it = appState.menuItems.find(i => i.id === id); if (!it || !confirm(`Xóa món "${it.name}" khỏi danh mục? Các ngày đã ghi vẫn giữ nguyên.`)) return;
+      it.active = false; saveAppState(); postToGoogleSheets({ action: 'upsert_menu_item', row: mealItemRow(it) }); renderMealMgr();
+    }
+    function renderMealMenuToday() {
+      const { rest, date } = mealCtx(); const unlocked = mealIsMgr(rest);
+      const items = appState.menuItems.filter(i => i.restaurantId === rest && i.active !== false);
+      document.getElementById('mealMenuToday').innerHTML = `<h4 class="text-sm font-bold text-mindful-green">Menu ngày ${formatDateVN(date)}</h4>` + MEAL_SHIFTS.map(sh => {
+        const m = appState.mealMenus[`${date}__${rest}__${sh.k}`]; const chosen = m ? m.items : []; const n = mealShiftCount(rest, date, sh.k);
+        const used = {}; chosen.forEach(it => it.ingredients.forEach(g => { const [q, u] = normUnit((Number(g.qty) || 0) * n, g.unit); const k = g.name + '|' + u; used[k] = (used[k] || 0) + q; }));
+        const useTxt = Object.entries(used).map(([k, q]) => { const [nm, u] = k.split('|'); return `${escapeHTML(nm)}: ${fmtQty(q)} ${u}`; }).join(' · ');
+        const all = items.concat(chosen.filter(c => !items.some(i => i.id === c.id)));
+        const body = unlocked
+          ? (all.length ? all.map(i => `<label class="inline-flex items-center gap-1.5 mr-3 mb-1 text-xs"><input type="checkbox" ${chosen.some(c => c.id === i.id) ? 'checked' : ''} onchange="toggleMealMenuItem('${sh.k}', '${i.id}', this.checked)" class="w-4 h-4" />${escapeHTML(i.name)}</label>`).join('') : '<span class="text-xs text-slate-400">Chưa có món trong danh mục, thêm món ở phần dưới.</span>')
+          : `<span class="text-xs text-slate-700">${chosen.map(c => escapeHTML(c.name)).join(', ') || 'Chưa nhập menu'}</span>`;
+        return `<div class="rounded-xl border border-slate-200 p-3"><div class="flex items-center justify-between mb-1"><span class="text-xs font-bold text-slate-700">${sh.n}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full bg-mindful-greenTint text-mindful-green">${n} suất</span></div>${body}${useTxt ? `<div class="mt-1.5 text-[11px] text-slate-500">Nguyên liệu tiêu hao (suất × định lượng): ${useTxt}</div>` : ''}</div>`;
+      }).join('');
+    }
+    function toggleMealMenuItem(shift, itemId, checked) {
+      const { rest, date } = mealCtx(); if (!mealIsMgr(rest)) return;
+      if (!dateAllowed(date)) { showToast(`Không sửa được menu ngày này (chỉ sửa lùi tối đa ${MAX_BACKDATE_DAYS} ngày, không sửa tương lai).`, 'error'); renderMealMenuToday(); return; }
+      const key = `${date}__${rest}__${shift}`; const m = appState.mealMenus[key] || { date, restaurantId: rest, shift, items: [] };
+      if (checked) { const it = appState.menuItems.find(i => i.id === itemId); if (it && !m.items.some(x => x.id === itemId)) m.items.push({ id: it.id, name: it.name, ingredients: JSON.parse(JSON.stringify(it.ingredients)) }); }
+      else m.items = m.items.filter(x => x.id !== itemId);
+      appState.mealMenus[key] = m; saveAppState(); postToGoogleSheets({ action: 'upsert_meal_menu', row: mealMenuRow(key, m) }); renderMealMenuToday();
+    }
+    async function unlockMealMgr() {
+      const { rest } = mealCtx(); const h = appState.mealConfig[rest];
+      if (!h) { showToast('Nhà hàng chưa có PIN quản lý. Liên hệ Phòng HC-NS để đặt.', 'error'); return; }
+      if (Date.now() < Number(sessionStorage.getItem('mm_lock') || 0)) { showToast('Nhập sai nhiều lần, thử lại sau 5 phút.', 'error'); return; }
+      if (await mealHash(document.getElementById('mealMgrPinInput').value.trim()) === h) { sessionStorage.setItem('mealMgr_' + rest, '1'); sessionStorage.setItem('mm_fail', '0'); showToast('Đã mở khóa mục quản lý.', 'success'); renderMealSection(); return; }
+      const f = Number(sessionStorage.getItem('mm_fail') || 0) + 1; sessionStorage.setItem('mm_fail', String(f));
+      if (f >= 5) { sessionStorage.setItem('mm_lock', String(Date.now() + 300000)); sessionStorage.setItem('mm_fail', '0'); }
+      showToast('Sai PIN quản lý.', 'error');
+    }
+    function lockMealMgr() { sessionStorage.removeItem('mealMgr_' + mealCtx().rest); renderMealSection(); }
+    async function setMealMgrPin() {
+      if (authSession.role !== 'admin') return;
+      const pin = document.getElementById('mealMgrPinNew').value.trim();
+      if (!/^\d{6,8}$/.test(pin)) { showToast('PIN quản lý phải gồm 6-8 chữ số.', 'error'); return; }
+      const { rest } = mealCtx(); const h = await mealHash(pin);
+      appState.mealConfig[rest] = h; saveAppState(); postToGoogleSheets({ action: 'set_meal_config', row: [rest, h] });
+      document.getElementById('mealMgrPinNew').value = ''; showToast('Đã đặt PIN quản lý cho nhà hàng này.', 'success');
+    }
+
+    // ---- Báo cáo tháng cho Kế toán ----
+    function exportMealMonthXlsx() {
+      if (typeof XLSX === 'undefined') { showToast('Chưa tải được thư viện Excel (cần Internet).', 'error'); return; }
+      const { rest, date } = mealCtx(); const month = date.slice(0, 7);
+      const all = authSession.role === 'admin' && document.getElementById('mealStatsScope')?.value === 'all';
+      const rName = id => appState.restaurants.find(r => r.id === id)?.name || id;
+      const emp = id => appState.employees.find(e => e.id === id) || {};
+      const recs = Object.values(appState.staffMeals).filter(r => r.staffId !== 'TOTAL' && r.date.startsWith(month) && (all || r.restaurantId === rest) && mealN(r.s1) + mealN(r.s2) + mealN(r.ot) > 0).sort((a, b) => (a.date + a.restaurantId).localeCompare(b.date + b.restaurantId));
+      const detail = [['Ngày', 'Nhà hàng', 'Mã NV', 'Họ và tên', 'Chức danh', 'Đơn vị công tác', 'Ca 1', 'Ca 2', 'Tăng ca', 'Tổng suất', 'Ghi chú']];
+      const per = {}, day = {};
+      recs.forEach(r => {
+        const e = emp(r.staffId), t = mealN(r.s1) + mealN(r.s2) + mealN(r.ot);
+        detail.push([formatDateVN(r.date), rName(r.restaurantId), e.code || '', e.name || '', e.role || '', e.unit || rName(e.restaurantId), mealN(r.s1), mealN(r.s2), mealN(r.ot), t, r.note || '']);
+        const p = per[r.staffId] = per[r.staffId] || [e.code || '', e.name || '', e.role || '', e.unit || rName(e.restaurantId), 0, 0, 0, 0];
+        p[4] += mealN(r.s1); p[5] += mealN(r.s2); p[6] += mealN(r.ot); p[7] += t;
+        const d = day[r.date + '|' + r.restaurantId] = day[r.date + '|' + r.restaurantId] || { date: r.date, rest: r.restaurantId, s1: 0, s2: 0, ot: 0 };
+        d.s1 += mealN(r.s1); d.s2 += mealN(r.s2); d.ot += mealN(r.ot);
+      });
+      const byEmp = [['Mã NV', 'Họ và tên', 'Chức danh', 'Đơn vị công tác', 'Ca 1', 'Ca 2', 'Tăng ca', 'Tổng suất']].concat(Object.values(per).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+      const menuTxt = (d, rid, sh) => (appState.mealMenus[`${d}__${rid}__${sh}`]?.items || []).map(i => i.name).join(', ');
+      const byDay = [['Ngày', 'Nhà hàng', 'Ca 1', 'Ca 2', 'Tăng ca', 'Tổng suất', 'Menu Ca 1', 'Menu Ca 2', 'Menu Tăng ca']];
+      Object.values(day).sort((a, b) => (a.date + a.rest).localeCompare(b.date + b.rest)).forEach(x => byDay.push([formatDateVN(x.date), rName(x.rest), x.s1, x.s2, x.ot, x.s1 + x.s2 + x.ot, menuTxt(x.date, x.rest, 's1'), menuTxt(x.date, x.rest, 's2'), menuTxt(x.date, x.rest, 'ot')]));
+      const ing = [['Ngày', 'Nhà hàng', 'Ca', 'Món', 'Nguyên liệu', 'Định lượng / suất', 'ĐVT', 'Số suất', 'Tiêu hao', 'ĐVT (quy đổi)']], tot = {};
+      Object.entries(appState.mealMenus).filter(([k, m]) => m.date.startsWith(month) && (all || m.restaurantId === rest)).sort((a, b) => a[0].localeCompare(b[0])).forEach(([k, m]) => {
+        const n = day[m.date + '|' + m.restaurantId]?.[m.shift] || 0, shName = MEAL_SHIFTS.find(x => x.k === m.shift)?.n || m.shift;
+        m.items.forEach(it => it.ingredients.forEach(g => {
+          const [used, u] = normUnit((Number(g.qty) || 0) * n, g.unit);
+          ing.push([formatDateVN(m.date), rName(m.restaurantId), shName, it.name, g.name, Number(g.qty) || 0, g.unit, n, used, u]);
+          const key = (g.name || '').trim() + '|' + u; tot[key] = (tot[key] || 0) + used;
+        }));
+      });
+      const totRows = [['Nguyên liệu', 'ĐVT', 'Tổng tiêu hao trong tháng']].concat(Object.entries(tot).sort((a, b) => a[0].localeCompare(b[0])).map(([k, q]) => [k.split('|')[0], k.split('|')[1], q]));
+      const note = [['BÁO CÁO CƠM CA NHÂN VIÊN - THÁNG ' + month], ['Phạm vi: ' + (all ? 'Toàn chuỗi' : rName(rest))], [''], ['- Số suất lấy từ danh sách tích tên từng nhân viên theo ca.'], ['- Định lượng là lượng nguyên liệu cho 1 suất ăn; Tiêu hao = Số suất × Định lượng (kg quy đổi g, l quy đổi ml).'], ['- Ngày chưa nhập menu sẽ không có dòng nguyên liệu.'], ['- Đơn giá do Kế toán tra cứu và áp dụng.']];
+      const wb = XLSX.utils.book_new();
+      [['Ghi chú', note], ['Tổng hợp theo ngày', byDay], ['Chi tiết nhân viên theo ngày', detail], ['Tổng hợp theo nhân viên', byEmp], ['Nguyên liệu theo ca', ing], ['Tổng nguyên liệu tháng', totRows]].forEach(([n, rows]) => {
+        const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = rows[0].map((_, i) => ({ wch: Math.min(40, Math.max(10, ...rows.map(r => String(r[i] ?? '').length))) })); XLSX.utils.book_append_sheet(wb, ws, n);
+      });
+      XLSX.writeFile(wb, `BaoCao_ComCa_${(all ? 'ToanChuoi' : rName(rest)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^A-Za-z0-9]+/g, '_')}_${month}.xlsx`);
+      showToast('Đã xuất báo cáo cơm ca tháng ' + month, 'success');
+    }
   </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v3.0</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v4.0</div>
 </body>
 </html>

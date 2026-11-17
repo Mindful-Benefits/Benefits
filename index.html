@@ -13,6 +13,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -1093,7 +1094,10 @@
       '    "Restaurants": ["ID", "Name", "Access_PIN"],',
       '    "Menu_Items": ["ID", "Restaurant_ID", "Name", "Group", "Ingredients_JSON", "Active", "Updated_At"],',
       '    "Meal_Menus": ["Key", "Date", "Restaurant_ID", "Shift", "Items_JSON", "Updated_At"],',
-      '    "Meal_Config": ["Restaurant_ID", "Mgr_PIN_Hash"]',
+      '    "Meal_Config": ["Restaurant_ID", "Mgr_PIN_Hash"],',
+      '    "Devices": ["Employee_ID", "Secret", "Cred_ID", "Bio", "Status", "Enrolled_At"],',
+      '    "Enroll_Tokens": ["Token", "Employee_ID", "Expires_At", "Used"],',
+      '    "Confirm_Requests": ["Req_ID", "Restaurant_ID", "Employee_ID", "Type", "Status", "Details_JSON", "Created_At", "Confirmed_At", "Bio", "Conds"]',
       '  };',
       '  Object.keys(schemas).forEach(function(name) {',
       '    let sheet = ss.getSheetByName(name);',
@@ -1119,6 +1123,109 @@
       '  return String(found.Access_PIN || "") === String(pin);',
       '}',
       '',
+      'var PUBLIC_ACTIONS = ["enroll", "qr_request", "qr_status", "qr_confirm", "qr_decline"];',
+      'function hexOf(bytes) { return bytes.map(function(b) { return ("0" + (b < 0 ? b + 256 : b).toString(16)).slice(-2); }).join(""); }',
+      'function hmacHex(msg, key) { return hexOf(Utilities.computeHmacSha256Signature(msg, key)); }',
+      'function sha256Hex(msg) { return hexOf(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, msg, Utilities.Charset.UTF_8)); }',
+      'function currentSlot() { return Math.floor(Date.now() / 60000); }',
+      'function qrToken(branch, slot) { return hmacHex(branch + "|" + slot, "qr|" + API_SECRET).slice(0, 12); }',
+      'function qrValid(branch, token) { const c = currentSlot(); return token === qrToken(branch, c) || token === qrToken(branch, c - 1); }',
+      'function errOf(m) { return { status: "error", message: m }; }',
+      'function rowsOf(ss, name) { return readSheetObjects(ss.getSheetByName(name)); }',
+      'function empById(ss, id) { return rowsOf(ss, "Employees").filter(function(r) { return String(r.ID) === String(id); })[0] || null; }',
+      'function devById(ss, id) { return rowsOf(ss, "Devices").filter(function(r) { return String(r.Employee_ID) === String(id) && String(r.Status) === "ACTIVE"; })[0] || null; }',
+      'function reqById(ss, id) { return rowsOf(ss, "Confirm_Requests").filter(function(r) { return String(r.Req_ID) === String(id); })[0] || null; }',
+      'function saveReq(ss, r) { upsertRow(ss.getSheetByName("Confirm_Requests"), 0, [r.Req_ID, r.Restaurant_ID, r.Employee_ID, r.Type, r.Status, r.Details_JSON, r.Created_At, r.Confirmed_At, r.Bio, r.Conds]); }',
+      'function sigOk(dev, parts, sig) { return !!dev && hmacHex(parts.join("|"), String(dev.Secret)) === String(sig); }',
+      'function handlePublic(ss, p) {',
+      '  const now = Date.now();',
+      '  const act = p.action;',
+      '  if (act === "enroll") {',
+      '    const t = rowsOf(ss, "Enroll_Tokens").filter(function(r) { return String(r.Token) === String(p.token); })[0];',
+      '    if (!t || Number(t.Used) === 1 || Number(t.Expires_At) < now) return errOf("Mã đăng ký không hợp lệ hoặc đã hết hạn. Liên hệ Phòng HC-NS để cấp mã mới.");',
+      '    const emp = empById(ss, t.Employee_ID);',
+      '    if (!emp) return errOf("Không tìm thấy nhân viên");',
+      '    const secret = Utilities.getUuid() + Utilities.getUuid();',
+      '    upsertRow(ss.getSheetByName("Devices"), 0, [String(emp.ID), secret, String(p.cred || ""), Number(p.bio) === 1 ? 1 : 0, "ACTIVE", now]);',
+      '    upsertRow(ss.getSheetByName("Enroll_Tokens"), 0, [t.Token, t.Employee_ID, t.Expires_At, 1]);',
+      '    return { status: "ok", employeeId: String(emp.ID), code: emp.Code, name: emp.Name, secret: secret };',
+      '  }',
+      '  const dev = devById(ss, p.emp);',
+      '  if (!dev) return errOf("Điện thoại chưa đăng ký hoặc đã bị thu hồi. Liên hệ Phòng HC-NS.");',
+      '  if (Math.abs(now - Number(p.ts)) > 600000) return errOf("Đồng hồ điện thoại lệch quá 10 phút, hãy bật giờ tự động.");',
+      '  if (act === "qr_request") {',
+      '    if (!sigOk(dev, ["req", p.branch, p.qr, p.type, p.ts], p.sig)) return errOf("Chữ ký thiết bị không hợp lệ");',
+      '    if (!qrValid(String(p.branch), String(p.qr))) return errOf("Mã QR đã hết hạn, hãy quét lại mã mới trên màn hình quầy.");',
+      '    if (["EMP15", "MGRCREDIT", "FOC-OTH"].indexOf(p.type) < 0) return errOf("Loại hình không hợp lệ");',
+      '    const emp = empById(ss, p.emp);',
+      '    if (!emp) return errOf("Không tìm thấy nhân viên");',
+      '    if (p.type === "MGRCREDIT" && !(Number(emp.Monthly_Quota) > 0)) return errOf("Tài khoản này không có hạn mức MGRCREDIT");',
+      '    rowsOf(ss, "Confirm_Requests").forEach(function(r) {',
+      '      if (String(r.Employee_ID) === String(emp.ID) && (r.Status === "OPEN" || r.Status === "READY")) { r.Status = "CANCELLED"; saveReq(ss, r); }',
+      '    });',
+      '    const id = "R" + Utilities.getUuid().replace(/-/g, "").slice(0, 7);',
+      '    saveReq(ss, { Req_ID: id, Restaurant_ID: p.branch, Employee_ID: String(emp.ID), Type: p.type, Status: "OPEN", Details_JSON: "", Created_At: now, Confirmed_At: 0, Bio: 0, Conds: "" });',
+      '    return { status: "ok", reqId: id };',
+      '  }',
+      '  const r = reqById(ss, p.req);',
+      '  if (!r || String(r.Employee_ID) !== String(p.emp)) return errOf("Không tìm thấy yêu cầu");',
+      '  if (act === "qr_status") {',
+      '    if (!sigOk(dev, ["st", p.req, p.ts], p.sig)) return errOf("Chữ ký thiết bị không hợp lệ");',
+      '    return { status: "ok", state: r.Status, type: r.Type, details: String(r.Details_JSON || "") };',
+      '  }',
+      '  if (act === "qr_decline") {',
+      '    if (!sigOk(dev, ["dc", p.req, p.ts], p.sig)) return errOf("Chữ ký thiết bị không hợp lệ");',
+      '    r.Status = "CANCELLED"; saveReq(ss, r);',
+      '    return { status: "ok" };',
+      '  }',
+      '  if (act === "qr_confirm") {',
+      '    if (r.Status !== "READY") return errOf("Yêu cầu chưa sẵn sàng hoặc đã xử lý");',
+      '    if (!sigOk(dev, ["cf", p.req, sha256Hex(String(r.Details_JSON)), p.bio, p.conds, p.ts], p.sig)) return errOf("Chữ ký không khớp nội dung hóa đơn");',
+      '    r.Status = "CONFIRMED"; r.Confirmed_At = now; r.Bio = Number(p.bio) === 1 ? 1 : 0; r.Conds = String(p.conds || "");',
+      '    saveReq(ss, r);',
+      '    return { status: "ok", confirmedAt: now };',
+      '  }',
+      '  return errOf("Hành động không hợp lệ");',
+      '}',
+      'function handleBranchAction(ss, branchId, p) {',
+      '  const act = p.action || "";',
+      '  const now = Date.now();',
+      '  if (act === "qr_token") {',
+      '    if (branchId === "ALL") return errOf("Chọn nhà hàng");',
+      '    return { status: "ok", token: qrToken(branchId, currentSlot()), ttl: 60 - (Math.floor(now / 1000) % 60) };',
+      '  }',
+      '  if (act === "qr_list") {',
+      '    const emps = rowsOf(ss, "Employees");',
+      '    const list = rowsOf(ss, "Confirm_Requests").filter(function(r) {',
+      '      return (branchId === "ALL" || String(r.Restaurant_ID) === String(branchId)) && Number(r.Created_At) > now - 1800000;',
+      '    }).map(function(r) {',
+      '      const e = emps.filter(function(x) { return String(x.ID) === String(r.Employee_ID); })[0] || {};',
+      '      return { Req_ID: r.Req_ID, Employee_ID: r.Employee_ID, Code: e.Code, Name: e.Name, Type: r.Type, Status: r.Status, Created_At: r.Created_At, Confirmed_At: r.Confirmed_At, Bio: r.Bio, Conds: r.Conds };',
+      '    });',
+      '    return { status: "ok", list: list };',
+      '  }',
+      '  if (act === "qr_ready" || act === "qr_cancel") {',
+      '    const r = reqById(ss, p.req);',
+      '    if (!r || (branchId !== "ALL" && String(r.Restaurant_ID) !== String(branchId))) return errOf("Không tìm thấy yêu cầu của nhà hàng này");',
+      '    if (r.Status !== "OPEN" && r.Status !== "READY") return errOf("Yêu cầu đã được xử lý");',
+      '    if (act === "qr_ready") { r.Details_JSON = String(p.details || ""); r.Status = "READY"; } else { r.Status = "CANCELLED"; }',
+      '    saveReq(ss, r);',
+      '    return { status: "ok" };',
+      '  }',
+      '  if (act === "enroll_token" || act === "device_revoke") {',
+      '    if (branchId !== "ALL") return errOf("Chỉ Admin được thực hiện");',
+      '    if (act === "enroll_token") {',
+      '      if (!empById(ss, p.emp)) return errOf("Không tìm thấy nhân viên");',
+      '      const token = "T" + Utilities.getUuid().replace(/-/g, "").slice(0, 15);',
+      '      upsertRow(ss.getSheetByName("Enroll_Tokens"), 0, [token, String(p.emp), now + 86400000, 0]);',
+      '      return { status: "ok", token: token };',
+      '    }',
+      '    const d = devById(ss, p.emp);',
+      '    if (d) upsertRow(ss.getSheetByName("Devices"), 0, [d.Employee_ID, d.Secret, d.Cred_ID, d.Bio, "REVOKED", d.Enrolled_At]);',
+      '    return { status: "ok" };',
+      '  }',
+      '  return null;',
+      '}',
       'function gate(ss, branch, pin, secret) {',
       '  const key = "fail_" + (branch || "ALL");',
       '  const cache = CacheService.getScriptCache();',
@@ -1139,9 +1246,12 @@
       '  const params = (e && e.parameter) || {};',
       '  const ss = setupSheets();',
       '  const branchId = params.branch || "ALL";',
+      '  if (PUBLIC_ACTIONS.indexOf(params.action) >= 0) return jsonResponse(handlePublic(ss, params));',
       '  const msg = gate(ss, branchId, params.pin || "", params.secret || "");',
       '  if (msg) return jsonResponse({ status: "error", message: msg });',
       '  if (params.action === "login") return jsonResponse({ status: "ok", login: true });',
+      '  const brOut = handleBranchAction(ss, branchId, params);',
+      '  if (brOut) return jsonResponse(brOut);',
       '  let restaurants = readSheetObjects(ss.getSheetByName("Restaurants"));',
       '  let focLogs = readSheetObjects(ss.getSheetByName("FOC_Logs"));',
       '  let staffMeals = readSheetObjects(ss.getSheetByName("Staff_Meals"));',
@@ -1149,6 +1259,7 @@
       '  let menuItems = readSheetObjects(ss.getSheetByName("Menu_Items"));',
       '  let mealMenus = readSheetObjects(ss.getSheetByName("Meal_Menus"));',
       '  let mealConfig = readSheetObjects(ss.getSheetByName("Meal_Config"));',
+      '  const devices = (branchId === "ALL") ? readSheetObjects(ss.getSheetByName("Devices")).map(function(r) { return { Employee_ID: r.Employee_ID, Status: r.Status, Enrolled_At: r.Enrolled_At, Bio: r.Bio }; }) : [];',
       '  if (branchId && branchId !== "ALL") {',
       '    restaurants = restaurants.filter(function(r) { return String(r.ID) === String(branchId); });',
       '    const ym = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "yyyy-MM");',
@@ -1173,7 +1284,8 @@
       '    staffMeals: staffMeals,',
       '    menuItems: menuItems,',
       '    mealMenus: mealMenus,',
-      '    mealConfig: mealConfig',
+      '    mealConfig: mealConfig,',
+      '    devices: devices',
       '  });',
       '}',
       '',
@@ -1815,6 +1927,7 @@
             appState.mealMenus[String(m.Key)] = { date: normalizeDateString(m.Date), restaurantId: String(m.Restaurant_ID), shift: String(m.Shift), items };
           });
         }
+        deviceMap = {}; (data.devices || []).forEach(d => { deviceMap[String(d.Employee_ID)] = d; });
         if (Array.isArray(data.mealConfig) && data.mealConfig.length > 0) {
           data.mealConfig.forEach(c => { if (c.Mgr_PIN_Hash) appState.mealConfig[String(c.Restaurant_ID)] = String(c.Mgr_PIN_Hash); });
         }
@@ -2219,9 +2332,9 @@
       const approver = document.getElementById('focApprover').value.trim();
       if (!dateAllowed(date)) return bad(`Ngày sử dụng không hợp lệ (không được ở tương lai; nhà hàng chỉ nhập lùi tối đa ${MAX_BACKDATE_DAYS} ngày, quá hạn liên hệ Phòng HC-NS).`);
       if (!billCode || appState.focLogs.some(l => l.restaurantId === restaurantId && l.billCode === billCode)) return bad('Mã bill trống hoặc đã được dùng cho một lượt ưu đãi khác.');
-      if (!currentPendingSignature) return bad('Cần người sử dụng ký tay hoặc nhập PIN xác nhận ngay tại quầy trước khi lưu.');
-      if (type !== 'FOC-OTH' && !document.getElementById('focChkOff').checked) return bad('Chỉ áp dụng ngoài giờ làm việc: hãy xác nhận người sử dụng đã ra ca / ngày nghỉ.');
-      if (type === 'MGRCREDIT' && !document.getElementById('focChkPresent').checked) return bad('MGRCREDIT yêu cầu người sử dụng có mặt trực tiếp trong bữa ăn.');
+      if (!currentPendingSignature) return bad('Cần nhân viên quét QR xác nhận (bấm "Nhận" ở khung QR) hoặc Quản lý duyệt ngoại lệ trước khi lưu.');
+      if (type !== 'FOC-OTH' && !activeQrReq && !document.getElementById('focChkOff').checked) return bad('Chỉ áp dụng ngoài giờ làm việc: hãy xác nhận người sử dụng đã ra ca / ngày nghỉ.');
+      if (type === 'MGRCREDIT' && !activeQrReq && !document.getElementById('focChkPresent').checked) return bad('MGRCREDIT yêu cầu người sử dụng có mặt trực tiếp trong bữa ăn.');
       if (type === 'MGRCREDIT' && staffObj && /quản lý nhà hàng/i.test(staffObj.role) && !note) return bad('Quản lý Nhà hàng chỉ dùng MGRCREDIT cho công việc: ghi rõ mục đích vào Ghi chú.');
       if (type === 'EMP15' && !(Number(document.getElementById('focFoodAmount').value) > 0)) return bad('Nhập giá trị tiền ĐỒ ĂN trong bill (ưu đãi 15% chỉ tính trên đồ ăn).');
       if (type === 'FOC-OTH' && !note) return bad('FOC-OTH: ghi rõ mục đích tiếp khách/xử lý công việc vào Ghi chú.');
@@ -2251,6 +2364,7 @@
         note
       };
 
+      if (activeQrReq) { newLog.verificationType = 'qr_pending'; newLog.verificationData = activeQrReq; newLog.verifiedAt = ''; qrSendReady(activeQrReq, newLog); activeQrReq = null; }
       appState.focLogs.push(newLog);
       saveAppState();
       postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(newLog) });
@@ -2332,17 +2446,14 @@
                 <span class="text-[9px] text-emerald-600">${escapeHTML(item.verifiedAt)}</span>
               </div>
             `;
+          } else if (item.verificationType === 'qr') {
+            verifyCellHTML = `<div class="inline-flex flex-col items-center px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800"><span class="text-[11px] font-bold"><i class="fa-solid fa-qrcode mr-1"></i>${escapeHTML(item.verificationData)}</span><span class="text-[9px] text-emerald-600">${escapeHTML(item.verifiedAt)}</span></div>`;
+          } else if (item.verificationType === 'qr_pending') {
+            verifyCellHTML = `<span class="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">Chờ NV xác nhận</span>`;
+          } else if (item.verificationType === 'exception') {
+            verifyCellHTML = `<div class="inline-flex flex-col items-center px-2 py-1 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 max-w-[150px]"><span class="text-[11px] font-bold">Ngoại lệ</span><span class="text-[9px] leading-tight">${escapeHTML(item.verificationData)}</span></div>`;
           } else {
-            verifyCellHTML = `
-              <div class="flex items-center justify-center gap-1">
-                <button onclick="openSignatureModal('${item.id}')" title="Ký tay xác nhận" class="px-2 py-1 rounded-lg bg-mindful-greenTint hover:bg-mindful-green text-mindful-green hover:text-white text-[11px] font-semibold transition">
-                  <i class="fa-solid fa-pen-nib"></i> Ký
-                </button>
-                <button onclick="openPinModal('${item.id}')" title="Xác nhận mã PIN" class="px-2 py-1 rounded-lg bg-mindful-goldLight hover:bg-mindful-gold text-mindful-bronze hover:text-mindful-green text-[11px] font-semibold transition">
-                  PIN
-                </button>
-              </div>
-            `;
+            verifyCellHTML = '<span class="text-[11px] text-slate-400">Chưa xác nhận</span>';
           }
 
           return `
@@ -2638,6 +2749,8 @@
           if (item) {
             if (item.verificationType === 'signature' && item.verificationData) {
               sigCell = `<img src="${escapeHTML(item.verificationData)}" width="72" height="22" style="max-height:22px;max-width:78px;" />`;
+            } else if (item.verificationType === 'qr_pending') {
+              sigCell = 'Chờ xác nhận';
             } else if (item.verificationData) {
               sigCell = `<span style="font-size:8.5pt;font-weight:bold;color:#12372A;">${escapeHTML(item.verificationData)}</span>`;
             }
@@ -3203,7 +3316,7 @@
 
       const filteredLogs = appState.focLogs.filter(l => filterRest === 'ALL' || l.restaurantId === filterRest);
       const todayLogs = filteredLogs.filter(l => l.date === todayISO);
-      const unsignedLogs = filteredLogs.filter(l => !l.verificationData);
+      const unsignedLogs = filteredLogs.filter(l => !l.verificationData || l.verificationType === 'qr_pending');
 
       const todayDiscountSum = todayLogs.reduce((s, l) => s + (Number(l.discountAmount) || 0), 0);
 
@@ -3400,6 +3513,7 @@
             <td class="px-3 py-2.5 text-right font-bold ${emp.monthlyQuota > 0 ? 'text-mindful-bronze' : 'text-slate-400'}">${emp.monthlyQuota > 0 ? formatVND(remaining) : '---'}</td>
             <td class="px-3 py-2.5 text-center">
               ${isBranchLocked ? '<span class="text-[10px] text-slate-400">Chỉ xem</span>' : `
+                ${authSession.role === 'admin' ? `<button onclick="qrEnrollStart('${emp.id}')" title="Cấp QR đăng ký điện thoại" class="text-mindful-green p-1 mr-1"><i class="fa-solid fa-qrcode"></i></button>${deviceMap[emp.id] && deviceMap[emp.id].Status === 'ACTIVE' ? '<span class="text-[10px] text-emerald-600 mr-1">Đã ĐK</span>' : ''}` : ''}
                 <button onclick="deleteStaff('${emp.id}')" class="text-red-500 hover:text-red-700 p-1">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -3766,7 +3880,228 @@
       XLSX.writeFile(wb, `BaoCao_ComCa_${(all ? 'ToanChuoi' : rName(rest)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^A-Za-z0-9]+/g, '_')}_${month}.xlsx`);
       showToast('Đã xuất báo cáo cơm ca tháng ' + month, 'success');
     }
+  
+    // ===================== v6: XÁC NHẬN QR TRÊN ĐIỆN THOẠI NHÂN VIÊN =====================
+    let deviceMap = {}, qrState = { list: [], token: '', exp: 0 }, activeQrReq = null, qrBusy = false;
+
+    async function qrGet(extra) {
+      const isBranch = authSession.role === 'branch' && authSession.lockedBranchId;
+      const base = { branch: isBranch ? authSession.lockedBranchId : 'ALL', pin: authSession.pin || '', secret: authSession.role === 'admin' ? (cloudConfig.apiSecret || '') : '' };
+      try { return await (await fetch(cloudConfig.webAppUrl + '?' + new URLSearchParams(Object.assign(base, extra)))).json(); }
+      catch (e) { return { status: 'error', message: 'Không kết nối được máy chủ' }; }
+    }
+
+    function initQrCard() {
+      if (document.getElementById('qrCard')) return;
+      const sec = document.getElementById('section-foc');
+      const c = document.createElement('div'); c.id = 'qrCard';
+      c.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5';
+      sec.insertBefore(c, sec.firstChild);
+      document.querySelectorAll(`[onclick="openSignatureModal('new')"],[onclick="openPinModal('new')"]`).forEach(b => b.classList.add('hidden'));
+      const st = document.getElementById('newEntryVerifyStatus');
+      if (st && !document.getElementById('qrExcBtn')) {
+        const b = document.createElement('button'); b.id = 'qrExcBtn'; b.type = 'button'; b.onclick = qrException;
+        b.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300';
+        b.textContent = 'Ngoại lệ (Quản lý duyệt thay)'; st.parentElement.insertBefore(b, st);
+        st.textContent = 'Chưa có xác nhận: nhân viên quét QR (hoặc Quản lý duyệt ngoại lệ)';
+      }
+      renderQrCard();
+    }
+
+    function renderQrCard() {
+      const c = document.getElementById('qrCard'); if (!c) return;
+      const isBranch = authSession.role === 'branch' && authSession.lockedBranchId;
+      if (!isBranch) { c.dataset.k = ''; c.innerHTML = `<div class="text-xs text-slate-500"><b class="text-mindful-green">Xác nhận QR bằng điện thoại nhân viên:</b> hiển thị trên máy nhà hàng (đăng nhập bằng link riêng và PIN nhà hàng).</div>`; return; }
+      const left = Math.max(0, Math.round((qrState.exp - Date.now()) / 1000));
+      const key = qrState.token + JSON.stringify(qrState.list) + (activeQrReq || '');
+      if (c.dataset.k === key) { const el = document.getElementById('qrLeft'); if (el) el.textContent = left; return; }
+      c.dataset.k = key;
+      const url = qrState.token ? `${location.origin}${location.pathname}?c=${authSession.lockedBranchId}.${qrState.token}` : '';
+      let img = '<div class="w-36 h-36 rounded-xl bg-slate-100 flex items-center justify-center text-[11px] text-slate-400">Đang tạo mã...</div>';
+      if (url && typeof qrcode !== 'undefined') { const q = qrcode(0, 'M'); q.addData(url); q.make(); img = q.createImgTag(5, 2); }
+      const label = { OPEN: 'Chờ nhập hóa đơn', READY: 'Chờ nhân viên xác nhận', CONFIRMED: 'Đã xác nhận', CANCELLED: 'Đã hủy' };
+      const rows = (qrState.list || []).filter(r => r.Status !== 'CANCELLED').map(r => `<div class="flex items-center justify-between gap-2 rounded-xl border ${activeQrReq === r.Req_ID ? 'border-mindful-green bg-mindful-greenTint/40' : 'border-slate-200'} px-3 py-2 text-xs">
+          <div><b class="text-mindful-green">${escapeHTML(r.Name || '')}</b> <span class="text-slate-400">(${escapeHTML(r.Code || '')})</span> <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 font-bold">${escapeHTML(r.Type)}</span><div class="text-[11px] ${r.Status === 'CONFIRMED' ? 'text-emerald-600 font-bold' : 'text-slate-500'}">${label[r.Status] || r.Status}</div></div>
+          <div class="whitespace-nowrap">${r.Status === 'OPEN' ? `<button type="button" onclick="applyQrRequest('${r.Req_ID}')" class="px-2.5 py-1 rounded-lg bg-mindful-green text-white font-bold">Nhận</button> ` : ''}${(r.Status === 'OPEN' || r.Status === 'READY') ? `<button type="button" onclick="qrCancel('${r.Req_ID}')" class="px-2 py-1 rounded-lg border border-slate-300">Hủy</button>` : ''}</div></div>`).join('');
+      c.innerHTML = `<div class="flex flex-col sm:flex-row gap-4 items-start">
+          <div class="text-center shrink-0"><div class="font-bold text-sm text-mindful-green mb-1">Quét để xác nhận</div>${img}<div class="text-[11px] text-slate-500 mt-1">Mã tự đổi sau <b id="qrLeft">${left}</b>s</div></div>
+          <div class="flex-1 w-full space-y-2"><div class="font-bold text-sm text-mindful-green">Yêu cầu xác nhận từ điện thoại nhân viên</div>${rows || '<div class="text-xs text-slate-400">Chưa có yêu cầu. Nhân viên mở camera điện thoại đã đăng ký và quét mã bên trái.</div>'}</div></div>`;
+    }
+
+    async function qrTick() {
+      if (qrBusy || !authSession.isAuthenticated || document.hidden) return;
+      if (authSession.role !== 'branch' || !authSession.lockedBranchId || !cloudConfig.webAppUrl) return;
+      if (document.getElementById('section-foc').classList.contains('hidden')) return;
+      initQrCard();
+      qrBusy = true;
+      try {
+        if (Date.now() > qrState.exp - 5000) { const t = await qrGet({ action: 'qr_token' }); if (t.status === 'ok') { qrState.token = t.token; qrState.exp = Date.now() + t.ttl * 1000; } }
+        const l = await qrGet({ action: 'qr_list' });
+        if (l.status === 'ok') { qrState.list = l.list.sort((a, b) => b.Created_At - a.Created_At).slice(0, 8); qrApplyConfirmed(); }
+      } finally { qrBusy = false; }
+      renderQrCard();
+    }
+    setInterval(qrTick, 2500);
+
+    function qrApplyConfirmed() {
+      let changed = false;
+      qrState.list.filter(r => r.Status === 'CONFIRMED').forEach(r => {
+        const lg = appState.focLogs.find(l => l.verificationType === 'qr_pending' && l.verificationData === r.Req_ID);
+        if (!lg) return;
+        lg.verificationType = 'qr'; lg.verificationData = 'QR-' + String(r.Req_ID).slice(1, 6).toUpperCase();
+        lg.verifiedAt = new Date(Number(r.Confirmed_At)).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + (Number(r.Bio) ? ' · sinh trắc' : ' · không sinh trắc');
+        if (r.Conds) lg.note = [lg.note, 'NV xác nhận: ' + r.Conds].filter(Boolean).join(' | ');
+        postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(lg) }); changed = true;
+      });
+      if (changed) { saveAppState(); renderFOCTable(); showToast('Nhân viên đã xác nhận trên điện thoại.', 'success'); }
+    }
+
+    function applyQrRequest(reqId) {
+      const r = qrState.list.find(x => x.Req_ID === reqId); if (!r) return;
+      const emp = appState.employees.find(e => e.id === r.Employee_ID);
+      if (!emp) { showToast('Nhân viên chưa có trong danh sách trên máy này. Bấm Đồng bộ rồi thử lại.', 'error'); return; }
+      selectFOCStaff(emp.id); setBenefitType(r.Type);
+      activeQrReq = reqId; currentPendingSignature = { type: 'qr_pending', data: reqId, verifiedAt: '' };
+      const st = document.getElementById('newEntryVerifyStatus');
+      st.textContent = `Đã nhận yêu cầu QR của ${emp.name}: nhập hóa đơn rồi Lưu`;
+      st.className = 'text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200';
+      document.getElementById('focBillCode').focus();
+      renderQrCard();
+    }
+
+    async function qrCancel(reqId) {
+      await qrGet({ action: 'qr_cancel', req: reqId });
+      if (activeQrReq === reqId) { activeQrReq = null; currentPendingSignature = null; }
+      qrTick();
+    }
+
+    async function qrSendReady(req, log) {
+      const food = Number(document.getElementById('focFoodAmount').value) || 0;
+      const details = JSON.stringify({ code: log.billCode, bill: log.billAmount, food, disc: log.discountAmount, extra: log.extraAmount, type: log.type, date: log.date, at: Date.now() });
+      const r = await qrGet({ action: 'qr_ready', req, details });
+      if (r.status !== 'ok') showToast('Không gửi được hóa đơn cho nhân viên xác nhận: ' + (r.message || ''), 'error');
+      else qrTick();
+    }
+
+    async function qrException() {
+      const rest = authSession.lockedBranchId || document.getElementById('focRestaurantSelect').value;
+      const reason = (prompt('Lý do ngoại lệ (VD: nhân viên hết pin, không có điện thoại thông minh):') || '').trim();
+      if (!reason) return;
+      const pin = (prompt('Nhập PIN quản lý nhà hàng (PIN đặt ở mục Cơm ca):') || '').trim();
+      const ok = authSession.role === 'admin' || (appState.mealConfig[rest] && await mealHash(pin) === appState.mealConfig[rest]);
+      if (!ok) { showToast('Sai PIN quản lý hoặc nhà hàng chưa có PIN quản lý.', 'error'); return; }
+      activeQrReq = null;
+      currentPendingSignature = { type: 'exception', data: 'Ngoại lệ: ' + reason, verifiedAt: new Date().toLocaleString('vi-VN') };
+      const st = document.getElementById('newEntryVerifyStatus');
+      st.textContent = 'Ngoại lệ do Quản lý duyệt: ' + reason;
+      st.className = 'text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200';
+    }
+
+    async function qrEnrollStart(empId) {
+      const emp = appState.employees.find(e => e.id === empId); if (!emp) return;
+      if (!cloudConfig.apiSecret) { showToast('Admin cần nhập API_SECRET trong Offline Mode.', 'error'); return; }
+      const r = await qrGet({ action: 'enroll_token', emp: empId });
+      if (r.status !== 'ok') { showToast(r.message || 'Không cấp được mã đăng ký', 'error'); return; }
+      const link = `${location.origin}${location.pathname}?enroll=${r.token}`;
+      let img = ''; if (typeof qrcode !== 'undefined') { const q = qrcode(0, 'M'); q.addData(link); q.make(); img = q.createImgTag(6, 2); }
+      const m = document.createElement('div'); m.id = 'qrEnrollModal';
+      m.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+      m.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:20px;text-align:center"><div style="font-weight:800;color:#12372A">Đăng ký điện thoại cho ${escapeHTML(emp.name)} (${escapeHTML(emp.code)})</div><div style="font-size:12px;color:#64748b;margin:6px 0 10px">Nhân viên quét mã bằng camera điện thoại của chính mình. Mã dùng 1 lần, hiệu lực 24 giờ. Đăng ký xong, điện thoại cũ (nếu có) bị thay thế.</div><div style="display:flex;justify-content:center">${img}</div><input readonly value="${escapeHTML(link)}" onclick="this.select()" style="width:100%;font-size:10px;margin-top:8px;border:1px solid #cbd5e1;border-radius:8px;padding:6px" /><div style="display:flex;gap:8px;margin-top:12px"><button onclick="qrRevoke('${empId}')" style="flex:1;padding:8px;border-radius:10px;border:1px solid #fca5a5;color:#b91c1c;font-weight:700;font-size:12px">Thu hồi thiết bị</button><button onclick="document.getElementById('qrEnrollModal').remove()" style="flex:1;padding:8px;border-radius:10px;background:#12372A;color:#fff;font-weight:700;font-size:12px">Đóng</button></div></div>`;
+      document.body.appendChild(m);
+    }
+    async function qrRevoke(empId) {
+      if (!confirm('Thu hồi điện thoại đã đăng ký của nhân viên này?')) return;
+      const r = await qrGet({ action: 'device_revoke', emp: empId });
+      showToast(r.status === 'ok' ? 'Đã thu hồi thiết bị.' : (r.message || 'Lỗi'), r.status === 'ok' ? 'success' : 'error');
+      document.getElementById('qrEnrollModal')?.remove(); syncFromGoogleSheets(false);
+    }
+
+    // ---- Chế độ trên điện thoại nhân viên: ?enroll=MÃ (đăng ký) hoặc ?c=NHÀHÀNG.MÃQR (xác nhận) ----
+    (function () {
+      const P = new URLSearchParams(location.search), enroll = P.get('enroll'), c = P.get('c');
+      if (!enroll && !c) return;
+      const H = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      const hexs = buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const hmac = async (key, msg) => { const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); return hexs(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg))); };
+      const sha = async msg => hexs(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg)));
+      const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const unb64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+      const api = async q => { try { return await (await fetch(FIXED_WEBAPP_URL + '?' + new URLSearchParams(q))).json(); } catch (e) { return { status: 'error', message: 'Không có kết nối mạng' }; } };
+      const ov = document.createElement('div'); ov.id = 'empOverlay';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#F4F7F5;overflow:auto;font-family:system-ui,-apple-system,sans-serif';
+      ov.innerHTML = '<div style="max-width:420px;margin:0 auto;padding:20px"><div style="text-align:center;font-weight:800;color:#12372A;font-size:18px;margin:8px 0 2px">Mindful Meals</div><div style="text-align:center;color:#B8860B;font-size:12px;font-weight:700;margin-bottom:16px">Xác nhận phúc lợi trên điện thoại</div><div id="empBody"></div></div>';
+      document.body.appendChild(ov);
+      const ui = html => { document.getElementById('empBody').innerHTML = `<div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08)">${html}</div>`; };
+      const btn = (id, label, style) => `<button id="${id}" style="display:block;width:100%;padding:14px;margin-top:10px;border-radius:12px;font-weight:800;font-size:15px;border:0;${style || 'background:#12372A;color:#fff'}">${label}</button>`;
+      const dev = () => { try { return JSON.parse(localStorage.getItem('mm_device') || 'null'); } catch (e) { return null; } };
+      const done = '<div style="font-size:44px;text-align:center">✅</div><div style="text-align:center;font-weight:800;color:#12372A">Đã xác nhận thành công</div><p style="text-align:center;font-size:13px;color:#475569">Bạn có thể đóng trang này.</p>';
+
+      async function doEnroll() {
+        ui('<div>Đang đăng ký thiết bị...</div>');
+        let cred = '', bio = 0;
+        try {
+          if (window.PublicKeyCredential && navigator.credentials) {
+            const cr = await navigator.credentials.create({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Mindful Meals' }, user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'nhanvien', displayName: 'Nhân viên' }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, timeout: 60000 } });
+            cred = b64(cr.rawId); bio = 1;
+          }
+        } catch (e) { /* không bật được sinh trắc */ }
+        const r = await api({ action: 'enroll', token: enroll, cred, bio });
+        if (r.status !== 'ok') { ui(`<b style="color:#b91c1c">${H(r.message)}</b>`); return; }
+        localStorage.setItem('mm_device', JSON.stringify({ emp: r.employeeId, name: r.name, code: r.code, secret: r.secret, cred, bio }));
+        ui(`<div style="font-size:44px;text-align:center">✅</div><div style="text-align:center;font-weight:800;color:#12372A">Đã đăng ký điện thoại cho ${H(r.name)}</div><p style="font-size:13px;color:#475569">Từ nay, khi dùng ưu đãi, hãy quét mã QR trên màn hình quầy bằng camera của điện thoại này.</p>${bio ? '' : '<p style="font-size:12px;color:#b45309">Điện thoại chưa bật được vân tay / khóa màn hình: mỗi lần xác nhận sẽ được ghi nhận là KHÔNG sinh trắc.</p>'}`);
+      }
+
+      function start() {
+        const d = dev();
+        if (!d) { ui('<b>Điện thoại này chưa đăng ký.</b><p style="font-size:13px">Liên hệ Phòng HC-NS để được cấp mã đăng ký.</p>'); return; }
+        const [branch, qr] = c.split('.');
+        ui(`<div style="text-align:center;font-weight:800;color:#12372A;font-size:16px">Xin chào ${H(d.name)}</div><p style="text-align:center;font-size:13px;color:#475569">Chọn loại hình ưu đãi:</p>${btn('t1', 'EMP15 · Ưu đãi nhân viên 15%')}${btn('t2', 'MGRCREDIT · Điểm phúc lợi quản lý', 'background:#B8860B;color:#fff')}${btn('t3', 'FOC-OTH · Tiếp khách / công việc', 'background:#6D28D9;color:#fff')}`);
+        [['t1', 'EMP15'], ['t2', 'MGRCREDIT'], ['t3', 'FOC-OTH']].forEach(([id, type]) => { document.getElementById(id).onclick = () => request(d, branch, qr, type); });
+      }
+      async function request(d, branch, qr, type) {
+        ui('<div>Đang gửi yêu cầu...</div>');
+        const ts = Date.now();
+        const r = await api({ action: 'qr_request', emp: d.emp, branch, qr, type, ts, sig: await hmac(d.secret, ['req', branch, qr, type, ts].join('|')) });
+        if (r.status !== 'ok') { ui(`<b style="color:#b91c1c">${H(r.message)}</b>`); return; }
+        poll(d, r.reqId, type);
+      }
+      async function poll(d, req, type) {
+        ui(`<div style="text-align:center;font-weight:800;color:#12372A">Đã gửi yêu cầu ${H(type)}</div><p style="text-align:center;font-size:13px;color:#475569">Vui lòng chờ thu ngân nhập hóa đơn. Giữ nguyên màn hình này.</p>`);
+        for (let i = 0; i < 240; i++) {
+          const ts = Date.now();
+          const s = await api({ action: 'qr_status', emp: d.emp, req, ts, sig: await hmac(d.secret, ['st', req, ts].join('|')) });
+          if (s.status === 'ok' && s.state === 'READY') return details(d, req, s);
+          if (s.status === 'ok' && s.state === 'CANCELLED') { ui('<b>Yêu cầu đã bị hủy.</b>'); return; }
+          if (s.status === 'ok' && s.state === 'CONFIRMED') { ui(done); return; }
+          await new Promise(r => setTimeout(r, 2500));
+        }
+        ui('<b>Hết thời gian chờ.</b> Hãy quét lại mã QR.');
+      }
+      function details(d, req, s) {
+        let x = {}; try { x = JSON.parse(s.details); } catch (e) {}
+        const money = n => new Intl.NumberFormat('vi-VN').format(Number(n) || 0) + 'đ';
+        const rows = [['Mã bill', x.code], ['Tổng hóa đơn', money(x.bill)], s.type === 'EMP15' ? ['Tiền đồ ăn', money(x.food)] : null, ['Mức ưu đãi', money(x.disc)], ['Thanh toán thêm', money(x.extra)]].filter(Boolean).map(r => `<tr><td style="padding:6px 0;color:#64748b">${r[0]}</td><td style="text-align:right;font-weight:800">${H(r[1])}</td></tr>`).join('');
+        const chk = (id, t) => `<label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px"><input type="checkbox" id="${id}" style="width:20px;height:20px;margin-top:1px" /><span>${t}</span></label>`;
+        ui(`<div style="font-weight:800;color:#12372A;font-size:16px">Xác nhận ${H(s.type)}</div><table style="width:100%;font-size:14px;margin-top:6px">${rows}</table>${s.type !== 'FOC-OTH' ? chk('c1', 'Tôi xác nhận đang <b>ngoài giờ làm việc</b> (đã ra ca / ngày nghỉ)') : ''}${s.type === 'MGRCREDIT' ? chk('c2', 'Tôi <b>có mặt trực tiếp</b> trong bữa ăn') : ''}${btn('ok', 'Xác nhận bằng vân tay / khóa màn hình')}${btn('no', 'Từ chối', 'background:#e2e8f0;color:#334155')}`);
+        document.getElementById('no').onclick = async () => { const ts = Date.now(); await api({ action: 'qr_decline', emp: d.emp, req, ts, sig: await hmac(d.secret, ['dc', req, ts].join('|')) }); ui('<b>Đã từ chối.</b>'); };
+        document.getElementById('ok').onclick = async () => {
+          const c1 = document.getElementById('c1'), c2 = document.getElementById('c2');
+          if ((c1 && !c1.checked) || (c2 && !c2.checked)) { alert('Cần tích xác nhận các điều kiện áp dụng.'); return; }
+          let bio = 0;
+          if (d.cred && navigator.credentials) {
+            try { await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: unb64(d.cred) }], userVerification: 'required', timeout: 60000 } }); bio = 1; }
+            catch (e) { alert('Chưa xác thực được vân tay / khóa màn hình. Vui lòng thử lại.'); return; }
+          }
+          const conds = [c1 ? 'ngoài giờ làm việc' : '', c2 ? 'có mặt trực tiếp' : ''].filter(Boolean).join('; ');
+          const ts = Date.now();
+          const r = await api({ action: 'qr_confirm', emp: d.emp, req, bio, conds, ts, sig: await hmac(d.secret, ['cf', req, await sha(s.details), bio, conds, ts].join('|')) });
+          ui(r.status === 'ok' ? done : `<b style="color:#b91c1c">${H(r.message)}</b>`);
+        };
+      }
+      enroll ? doEnroll() : start();
+    })();
+    window.addEventListener('load', initQrCard);
   </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v5.0</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v6.0</div>
 </body>
 </html>

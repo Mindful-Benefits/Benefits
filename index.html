@@ -314,7 +314,7 @@
           <div class="sm:col-span-2 lg:col-span-12 flex flex-wrap items-end gap-x-6 gap-y-2 text-xs font-medium text-slate-700 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
             <label id="chkOffWrap" class="inline-flex items-center gap-2"><input type="checkbox" id="focChkOff" class="w-4 h-4" /> Người sử dụng đang NGOÀI giờ làm việc (đã ra ca / ngày nghỉ)</label>
             <label id="chkPresentWrap" class="hidden inline-flex items-center gap-2"><input type="checkbox" id="focChkPresent" class="w-4 h-4" /> Có mặt trực tiếp trong bữa ăn</label>
-            <div id="focFoodWrap" class="hidden"><span class="block mb-1">Giá trị ĐỒ ĂN trong bill (VNĐ) *</span><input type="number" id="focFoodAmount" min="0" step="1000" oninput="recalculateFOCPreview()" class="w-44 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-right" /></div>
+            <div id="focFoodWrap" class="hidden"><span class="block mb-1">Giá trị ĐỒ ĂN trong bill (VNĐ) *</span><input type="number" id="focFoodAmount" min="0" step="1" oninput="recalculateFOCPreview()" class="w-44 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-right" /></div>
             <div id="focApproverWrap" class="hidden"><span class="block mb-1">Người phê duyệt (&gt;10%) *</span><input type="text" id="focApprover" placeholder="Họ tên + chức danh" class="w-56 rounded-xl border border-slate-300 px-3 py-1.5 text-sm" /></div>
           </div>
 
@@ -327,7 +327,7 @@
           <!-- Bill Total Amount -->
           <div class="lg:col-span-2">
             <label class="block text-xs font-semibold text-slate-700 mb-1">Giá trị hóa đơn (VNĐ) *</label>
-            <input type="number" id="focBillAmount" required min="0" step="1000" placeholder="0" oninput="recalculateFOCPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+            <input type="number" id="focBillAmount" required min="0" step="1" placeholder="0" oninput="recalculateFOCPreview()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
           </div>
 
           <!-- Custom Discount % for FOC-OTH -->
@@ -339,13 +339,13 @@
           <!-- Calculated Discount Amount -->
           <div class="lg:col-span-2">
             <label class="block text-xs font-semibold text-slate-700 mb-1">Mức ưu đãi (VNĐ)</label>
-            <input type="number" id="focDiscountAmount" min="0" step="1000" value="0" oninput="recalculateExtraFromManualDiscount()" class="w-full rounded-xl border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-sm font-bold text-emerald-800 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+            <input type="number" id="focDiscountAmount" min="0" step="1" value="0" oninput="recalculateExtraFromManualDiscount()" class="w-full rounded-xl border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-sm font-bold text-emerald-800 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
           </div>
 
           <!-- Extra Payment if Exceeded -->
           <div class="lg:col-span-2">
             <label class="block text-xs font-semibold text-slate-700 mb-1">TT thêm (nếu vượt)</label>
-            <input type="number" id="focExtraAmount" min="0" step="1000" value="0" class="w-full rounded-xl border border-amber-300 bg-amber-50/70 px-3 py-2 text-sm font-bold text-amber-900 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
+            <input type="number" id="focExtraAmount" min="0" step="1" value="0" class="w-full rounded-xl border border-amber-300 bg-amber-50/70 px-3 py-2 text-sm font-bold text-amber-900 text-right focus:outline-none focus:ring-2 focus:ring-mindful-green" />
           </div>
 
           <!-- Cashier Name -->
@@ -1090,7 +1090,7 @@
       '  const schemas = {',
       '    "FOC_Logs": ["ID", "Restaurant_ID", "Restaurant_Name", "Usage_Date", "Staff_ID", "Staff_Name_Title", "Benefit_Type", "Bill_Code", "Bill_Amount", "Discount_Amount", "Extra_Amount", "Verification_Type", "Verification_Data", "Verified_At", "Cashier_Name", "Note", "Updated_At"],',
       '    "Staff_Meals": ["Record_Key", "Date", "Restaurant_ID", "Restaurant_Name", "Staff_ID", "Staff_Name", "Shift_1", "Shift_2", "Shift_OT", "Total_Meals", "Note", "Updated_At"],',
-      '    "Employees": ["ID", "Code", "Name", "Phone", "Role", "Monthly_Quota", "Restaurant_ID", "Unit"],',
+      '    "Employees": ["ID", "Code", "Name", "Phone", "Role", "Monthly_Quota", "Restaurant_ID", "Unit", "FOC_OTH_Max"],',
       '    "Restaurants": ["ID", "Name", "Access_PIN"],',
       '    "Menu_Items": ["ID", "Restaurant_ID", "Name", "Group", "Ingredients_JSON", "Active", "Updated_At"],',
       '    "Meal_Menus": ["Key", "Date", "Restaurant_ID", "Shift", "Items_JSON", "Updated_At"],',
@@ -1109,6 +1109,9 @@
       '    } else if (name === "Employees" && String(sheet.getRange(1, 8).getValue()) === "") {',
       '      sheet.getRange(1, 8).setValue("Unit").setFontWeight("bold").setBackground("#12372A").setFontColor("#FFFFFF");',
       '    }',
+      '    if (name === "Employees" && String(sheet.getRange(1, 9).getValue()) === "") {',
+      '      sheet.getRange(1, 9).setValue("FOC_OTH_Max").setFontWeight("bold").setBackground("#12372A").setFontColor("#FFFFFF");',
+      '    }',
       '  });',
       '  return ss;',
       '}',
@@ -1125,7 +1128,7 @@
       '',
       'var PUBLIC_ACTIONS = ["enroll", "qr_request", "qr_status", "qr_confirm", "qr_decline"];',
       'function hexOf(bytes) { return bytes.map(function(b) { return ("0" + (b < 0 ? b + 256 : b).toString(16)).slice(-2); }).join(""); }',
-      'function hmacHex(msg, key) { return hexOf(Utilities.computeHmacSha256Signature(msg, key)); }',
+      'function hmacHex(msg, key) { return hexOf(Utilities.computeHmacSha256Signature(msg, key, Utilities.Charset.UTF_8)); }',
       'function sha256Hex(msg) { return hexOf(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, msg, Utilities.Charset.UTF_8)); }',
       'function currentSlot() { return Math.floor(Date.now() / 60000); }',
       'function qrToken(branch, slot) { return hmacHex(branch + "|" + slot, "qr|" + API_SECRET).slice(0, 12); }',
@@ -1160,6 +1163,7 @@
       '    const emp = empById(ss, p.emp);',
       '    if (!emp) return errOf("Không tìm thấy nhân viên");',
       '    if (p.type === "MGRCREDIT" && !(Number(emp.Monthly_Quota) > 0)) return errOf("Tài khoản này không có hạn mức MGRCREDIT");',
+      '    if (p.type === "FOC-OTH" && !(Number(emp.FOC_OTH_Max) > 0)) return errOf("Tài khoản này chưa được cấp quyền dùng FOC-OTH. Liên hệ Phòng HC-NS.");',
       '    rowsOf(ss, "Confirm_Requests").forEach(function(r) {',
       '      if (String(r.Employee_ID) === String(emp.ID) && (r.Status === "OPEN" || r.Status === "READY")) { r.Status = "CANCELLED"; saveReq(ss, r); }',
       '    });',
@@ -1179,8 +1183,11 @@
       '    return { status: "ok" };',
       '  }',
       '  if (act === "qr_confirm") {',
+      '    const dh = sha256Hex(String(r.Details_JSON));',
+      '    const okSig = sigOk(dev, ["cf", p.req, dh, p.bio, p.conds, p.ts], p.sig);',
+      '    if (r.Status === "CONFIRMED") return okSig ? { status: "ok", confirmedAt: Number(r.Confirmed_At), already: true } : errOf("Yêu cầu đã được xác nhận trước đó");',
       '    if (r.Status !== "READY") return errOf("Yêu cầu chưa sẵn sàng hoặc đã xử lý");',
-      '    if (!sigOk(dev, ["cf", p.req, sha256Hex(String(r.Details_JSON)), p.bio, p.conds, p.ts], p.sig)) return errOf("Chữ ký không khớp nội dung hóa đơn");',
+      '    if (!okSig) return errOf("Chữ ký không khớp nội dung hóa đơn [máy chủ: " + dh.slice(0, 6) + "]");',
       '    r.Status = "CONFIRMED"; r.Confirmed_At = now; r.Bio = Number(p.bio) === 1 ? 1 : 0; r.Conds = String(p.conds || "");',
       '    saveReq(ss, r);',
       '    return { status: "ok", confirmedAt: now };',
@@ -1208,7 +1215,15 @@
       '    const r = reqById(ss, p.req);',
       '    if (!r || (branchId !== "ALL" && String(r.Restaurant_ID) !== String(branchId))) return errOf("Không tìm thấy yêu cầu của nhà hàng này");',
       '    if (r.Status !== "OPEN" && r.Status !== "READY") return errOf("Yêu cầu đã được xử lý");',
-      '    if (act === "qr_ready") { r.Details_JSON = String(p.details || ""); r.Status = "READY"; } else { r.Status = "CANCELLED"; }',
+      '    if (act === "qr_ready") {',
+      '      if (r.Type === "FOC-OTH") {',
+      '        let dd = {}; try { dd = JSON.parse(String(p.details || "{}")); } catch (x) {}',
+      '        const em = empById(ss, r.Employee_ID);',
+      '        if (!em || !(Number(em.FOC_OTH_Max) > 0)) return errOf("Người này chưa được cấp quyền FOC-OTH");',
+      '        if (Number(dd.pct) > Number(em.FOC_OTH_Max)) return errOf("Mức giảm " + dd.pct + "% vượt quyền tối đa " + em.FOC_OTH_Max + "% của " + em.Name);',
+      '      }',
+      '      r.Details_JSON = String(p.details || ""); r.Status = "READY";',
+      '    } else { r.Status = "CANCELLED"; }',
       '    saveReq(ss, r);',
       '    return { status: "ok" };',
       '  }',
@@ -1425,7 +1440,8 @@
             role: String(e.role || e.Role || 'Nhân viên'),
             monthlyQuota: Number(e.monthlyQuota ?? e.Monthly_Quota ?? 0) || 0,
             restaurantId: String(e.restaurantId ?? e.Restaurant_ID ?? ''),
-            unit: String(e.unit || e.Unit || '')
+            unit: String(e.unit || e.Unit || ''),
+            focOthMax: parseOth(e.focOthMax !== undefined ? e.focOthMax : e.FOC_OTH_Max)
           })).filter(e => !/[\uFFFD\u0000-\u0008]/.test(e.code + e.name + e.role + e.phone))
         : JSON.parse(JSON.stringify(DEFAULT_DATA.employees));
 
@@ -1871,7 +1887,8 @@
             role: String(e.Role || e.role),
             monthlyQuota: Number(e.Monthly_Quota || e.monthlyQuota || 0),
             restaurantId: String(e.Restaurant_ID ?? e.restaurantId ?? ''),
-            unit: String(e.Unit || e.unit || '')
+            unit: String(e.Unit || e.unit || ''),
+            focOthMax: parseOth(e.FOC_OTH_Max)
           }));
         }
 
@@ -2022,7 +2039,7 @@
       await postToGoogleSheets({
         action: 'push_all',
         restaurants: appState.restaurants.map(r => [r.id, r.name, r.pin || '']),
-        employees: appState.employees.map(e => [e.id, e.code, e.name, e.phone, e.role, e.monthlyQuota, e.restaurantId, e.unit || '']),
+        employees: appState.employees.map(e => [e.id, e.code, e.name, e.phone, e.role, e.monthlyQuota, e.restaurantId, e.unit || '', othMaxOf(e)]),
         focRows,
         mealRows,
         menuItemRows: (appState.menuItems || []).map(mealItemRow),
@@ -2302,8 +2319,8 @@
         if (pct > 15) approver = 'Tổng Giám đốc / CEO phê duyệt';
         else if (pct > 10) approver = 'Giám đốc Vận hành phê duyệt';
 
-        document.getElementById('focApproverWrap').classList.toggle('hidden', pct <= 10);
-        helperText.innerHTML = `<i class="fa-solid fa-stamp text-mindful-bronze mr-1.5"></i><strong>FOC-OTH (Giảm ${pct}%):</strong> Thẩm quyền bắt buộc: <strong class="text-mindful-green underline">${approver}</strong>. Lưu chứng từ duyệt kèm hóa đơn.`;
+        document.getElementById('focApproverWrap').classList.add('hidden');
+        helperText.innerHTML = `<i class="fa-solid fa-stamp text-mindful-bronze mr-1.5"></i><strong>FOC-OTH (Giảm ${pct}%):</strong> Mức giảm phải nằm trong quyền FOC-OTH đã cấp cho người sử dụng (Admin phân quyền; chỉ Quản lý và Giám đốc).`;
       }
     }
 
@@ -2338,8 +2355,12 @@
       if (type === 'MGRCREDIT' && staffObj && /quản lý nhà hàng/i.test(staffObj.role) && !note) return bad('Quản lý Nhà hàng chỉ dùng MGRCREDIT cho công việc: ghi rõ mục đích vào Ghi chú.');
       if (type === 'EMP15' && !(Number(document.getElementById('focFoodAmount').value) > 0)) return bad('Nhập giá trị tiền ĐỒ ĂN trong bill (ưu đãi 15% chỉ tính trên đồ ăn).');
       if (type === 'FOC-OTH' && !note) return bad('FOC-OTH: ghi rõ mục đích tiếp khách/xử lý công việc vào Ghi chú.');
-      if (type === 'FOC-OTH' && pct > 10 && !approver) return bad('Giảm trên 10% phải có người phê duyệt (Giám đốc Vận hành / CEO) và lưu chứng từ duyệt.');
-      note = [type === 'EMP15' ? `Đồ ăn ${formatNumberPlain(document.getElementById('focFoodAmount').value)}` : '', type === 'FOC-OTH' ? `Giảm ${pct}%` : '', (type === 'FOC-OTH' && pct > 10) ? `Duyệt: ${approver}` : '', note].filter(Boolean).join(' | ');
+      if (type === 'FOC-OTH') {
+        const cap = staffObj ? othMaxOf(staffObj) : 0;
+        if (cap <= 0) return bad(`${staffObj ? staffObj.name : 'Người này'} chưa được cấp quyền dùng FOC-OTH (chỉ Quản lý và Giám đốc theo phân quyền của Admin).`);
+        if (pct > cap) return bad(`Mức giảm ${pct}% vượt quyền của ${staffObj.name} (tối đa ${cap}%). Cần người có quyền cao hơn thực hiện.`);
+      }
+      note = [type === 'EMP15' ? `Đồ ăn ${formatNumberPlain(document.getElementById('focFoodAmount').value)}` : '', type === 'FOC-OTH' ? `Giảm ${pct}%` : '', type === 'FOC-OTH' ? `Duyệt: ${staffObj ? staffObj.name : ''} (quyền ≤ ${staffObj ? othMaxOf(staffObj) : 0}%)` : '', note].filter(Boolean).join(' | ');
 
       if (!staffNameTitle) {
         showToast('Vui lòng chọn hoặc nhập Họ tên / Chức danh người sử dụng!', 'error');
@@ -3457,7 +3478,7 @@
       saveAppState();
       postToGoogleSheets({
         action: 'sync_master',
-        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || ''])
+        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '', othMaxOf(emp)])
       });
 
       document.getElementById('hrStaffCode').value = '';
@@ -3476,7 +3497,7 @@
       saveAppState();
       postToGoogleSheets({
         action: 'sync_master',
-        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || ''])
+        employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '', othMaxOf(emp)])
       });
       renderHRTable();
       showToast('Đã xóa nhân sự khỏi danh sách.', 'info');
@@ -3513,7 +3534,7 @@
             <td class="px-3 py-2.5 text-right font-bold ${emp.monthlyQuota > 0 ? 'text-mindful-bronze' : 'text-slate-400'}">${emp.monthlyQuota > 0 ? formatVND(remaining) : '---'}</td>
             <td class="px-3 py-2.5 text-center">
               ${isBranchLocked ? '<span class="text-[10px] text-slate-400">Chỉ xem</span>' : `
-                ${authSession.role === 'admin' ? `<button onclick="qrEnrollStart('${emp.id}')" title="Cấp QR đăng ký điện thoại" class="text-mindful-green p-1 mr-1"><i class="fa-solid fa-qrcode"></i></button>${deviceMap[emp.id] && deviceMap[emp.id].Status === 'ACTIVE' ? '<span class="text-[10px] text-emerald-600 mr-1">Đã ĐK</span>' : ''}` : ''}
+                ${authSession.role === 'admin' ? `<button onclick="othEdit('${emp.id}')" title="Quyền FOC-OTH: mức giảm tối đa (bấm để đổi)" class="text-[10px] font-bold px-1.5 py-0.5 rounded border mr-1 ${othMaxOf(emp) > 0 ? 'text-purple-700 border-purple-300 bg-purple-50' : 'text-slate-400 border-slate-200'}">OTH ${othMaxOf(emp)}%</button><button onclick="qrEnrollStart('${emp.id}')" title="Cấp QR đăng ký điện thoại" class="text-mindful-green p-1 mr-1"><i class="fa-solid fa-qrcode"></i></button>${deviceMap[emp.id] && deviceMap[emp.id].Status === 'ACTIVE' ? '<span class="text-[10px] text-emerald-600 mr-1">Đã ĐK</span>' : ''}` : ''}
                 <button onclick="deleteStaff('${emp.id}')" class="text-red-500 hover:text-red-700 p-1">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -3530,7 +3551,7 @@
       const rules = {
         code: /^(ma nv|ma nhan vien|ma so nv|ma)$/, name: /(ho va ten|ho ten|ten nhan vien|^nhan vien$)/,
         role: /(chuc danh|chuc vu|vi tri)/, unit: /(don vi|nha hang|co so|bo phan)/,
-        phone: /(so dien thoai|sdt|dien thoai|^phone)/, quota: /(mgrcredit|han muc)/
+        phone: /(so dien thoai|sdt|dien thoai|^phone)/, quota: /(mgrcredit|han muc)/, oth: /(foc-oth|foc oth|quyen foc)/
       };
       let map = null, start = 0;
       for (let i = 0; i < Math.min(rows.length, 20); i++) {
@@ -3548,7 +3569,7 @@
         if (!code || !name || /[\uFFFD]/.test(code + name)) { skipped++; continue; }
         let phone = get(r, 'phone').replace(/\D/g, '');
         if (phone.length === 9) phone = '0' + phone; // Excel làm mất số 0 đầu
-        out.push({ code, name, phone, role: get(r, 'role') || 'Nhân viên', unit: get(r, 'unit'), monthlyQuota: Number(get(r, 'quota').replace(/\D/g, '')) || 0 });
+        out.push({ code, name, phone, role: get(r, 'role') || 'Nhân viên', unit: get(r, 'unit'), monthlyQuota: Number(get(r, 'quota').replace(/\D/g, '')) || 0, oth: get(r, 'oth') === '' ? undefined : Number(get(r, 'oth').replace(/\D/g, '')) });
       }
       return { out, skipped };
     }
@@ -3580,6 +3601,7 @@
             const rest = appState.restaurants.find(r => unit && (r.name.toLowerCase().includes(unit) || unit.includes(r.name.split(' - ')[0].trim().toLowerCase())));
             if (!rest) unmatched++;
             const rec = { code: x.code, name: x.name, phone: x.phone, role: x.role, monthlyQuota: x.monthlyQuota, restaurantId: rest ? rest.id : '', unit: x.unit || (rest ? rest.name.split(' - ')[0] : '') };
+            if (x.oth !== undefined && !isNaN(x.oth)) rec.focOthMax = Math.min(100, x.oth);
             const old = (replaceAll ? appState.employees : list).find(o => o.code === rec.code);
             if (replaceAll) { list.push({ id: old ? old.id : 'emp_' + Date.now() + '_' + idx, ...rec }); added++; }
             else if (old) { Object.assign(old, rec); updated++; }
@@ -3587,7 +3609,7 @@
           });
           appState.employees = list;
           saveAppState();
-          postToGoogleSheets({ action: 'sync_master', employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '']) });
+          postToGoogleSheets({ action: 'sync_master', employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '', othMaxOf(emp)]) });
           renderHRTable();
           showToast(`Import xong: ${added} thêm mới, ${updated} cập nhật${skipped ? `, ${skipped} dòng lỗi bị bỏ qua` : ''}.${unmatched ? ` ${unmatched} dòng không thuộc nhà hàng nào (công ty/ban điều hành) nên để "Toàn hệ thống" và hiển thị theo cột Đơn vị.` : ''}`, unmatched || skipped ? 'info' : 'success');
         } catch (err) {
@@ -3950,7 +3972,7 @@
         if (!lg) return;
         lg.verificationType = 'qr'; lg.verificationData = 'QR-' + String(r.Req_ID).slice(1, 6).toUpperCase();
         lg.verifiedAt = new Date(Number(r.Confirmed_At)).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + (Number(r.Bio) ? ' · sinh trắc' : ' · không sinh trắc');
-        if (r.Conds) lg.note = [lg.note, 'NV xác nhận: ' + r.Conds].filter(Boolean).join(' | ');
+        if (r.Conds) lg.note = [lg.note, 'NV xác nhận: ' + qrCondText(r.Conds)].filter(Boolean).join(' | ');
         postToGoogleSheets({ action: 'upsert_foc', row: buildFOCSheetRow(lg) }); changed = true;
       });
       if (changed) { saveAppState(); renderFOCTable(); showToast('Nhân viên đã xác nhận trên điện thoại.', 'success'); }
@@ -3977,7 +3999,7 @@
 
     async function qrSendReady(req, log) {
       const food = Number(document.getElementById('focFoodAmount').value) || 0;
-      const details = JSON.stringify({ code: log.billCode, bill: log.billAmount, food, disc: log.discountAmount, extra: log.extraAmount, type: log.type, date: log.date, at: Date.now() });
+      const details = JSON.stringify({ pct: log.type === 'FOC-OTH' ? (Number(document.getElementById('focCustomPercent').value) || 0) : 0, code: log.billCode, bill: log.billAmount, food, disc: log.discountAmount, extra: log.extraAmount, type: log.type, date: log.date, at: Date.now() });
       const r = await qrGet({ action: 'qr_ready', req, details });
       if (r.status !== 'ok') showToast('Không gửi được hóa đơn cho nhân viên xác nhận: ' + (r.message || ''), 'error');
       else qrTick();
@@ -4080,28 +4102,58 @@
       function details(d, req, s) {
         let x = {}; try { x = JSON.parse(s.details); } catch (e) {}
         const money = n => new Intl.NumberFormat('vi-VN').format(Number(n) || 0) + 'đ';
-        const rows = [['Mã bill', x.code], ['Tổng hóa đơn', money(x.bill)], s.type === 'EMP15' ? ['Tiền đồ ăn', money(x.food)] : null, ['Mức ưu đãi', money(x.disc)], ['Thanh toán thêm', money(x.extra)]].filter(Boolean).map(r => `<tr><td style="padding:6px 0;color:#64748b">${r[0]}</td><td style="text-align:right;font-weight:800">${H(r[1])}</td></tr>`).join('');
+        const rows = [['Mã bill', x.code], ['Tổng hóa đơn', money(x.bill)], s.type === 'EMP15' ? ['Tiền đồ ăn', money(x.food)] : null, s.type === 'FOC-OTH' ? ['Mức giảm', (x.pct || 0) + '%'] : null, ['Mức ưu đãi', money(x.disc)], ['Thanh toán thêm', money(x.extra)]].filter(Boolean).map(r => `<tr><td style="padding:6px 0;color:#64748b">${r[0]}</td><td style="text-align:right;font-weight:800">${H(r[1])}</td></tr>`).join('');
         const chk = (id, t) => `<label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px"><input type="checkbox" id="${id}" style="width:20px;height:20px;margin-top:1px" /><span>${t}</span></label>`;
         ui(`<div style="font-weight:800;color:#12372A;font-size:16px">Xác nhận ${H(s.type)}</div><table style="width:100%;font-size:14px;margin-top:6px">${rows}</table>${s.type !== 'FOC-OTH' ? chk('c1', 'Tôi xác nhận đang <b>ngoài giờ làm việc</b> (đã ra ca / ngày nghỉ)') : ''}${s.type === 'MGRCREDIT' ? chk('c2', 'Tôi <b>có mặt trực tiếp</b> trong bữa ăn') : ''}${btn('ok', 'Xác nhận bằng vân tay / khóa màn hình')}${btn('no', 'Từ chối', 'background:#e2e8f0;color:#334155')}`);
         document.getElementById('no').onclick = async () => { const ts = Date.now(); await api({ action: 'qr_decline', emp: d.emp, req, ts, sig: await hmac(d.secret, ['dc', req, ts].join('|')) }); ui('<b>Đã từ chối.</b>'); };
         document.getElementById('ok').onclick = async () => {
+          const okb = document.getElementById('ok'); if (okb.disabled) return; okb.disabled = true;
           const c1 = document.getElementById('c1'), c2 = document.getElementById('c2');
-          if ((c1 && !c1.checked) || (c2 && !c2.checked)) { alert('Cần tích xác nhận các điều kiện áp dụng.'); return; }
+          if ((c1 && !c1.checked) || (c2 && !c2.checked)) { alert('Cần tích xác nhận các điều kiện áp dụng.'); okb.disabled = false; return; }
           let bio = 0;
           if (d.cred && navigator.credentials) {
             try { await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: unb64(d.cred) }], userVerification: 'required', timeout: 60000 } }); bio = 1; }
-            catch (e) { alert('Chưa xác thực được vân tay / khóa màn hình. Vui lòng thử lại.'); return; }
+            catch (e) { alert('Chưa xác thực được vân tay / khóa màn hình. Vui lòng thử lại.'); okb.disabled = false; return; }
           }
-          const conds = [c1 ? 'ngoài giờ làm việc' : '', c2 ? 'có mặt trực tiếp' : ''].filter(Boolean).join('; ');
+          const conds = [c1 ? 'off' : '', c2 ? 'present' : ''].filter(Boolean).join(';');
+          okb.textContent = 'Đang xác nhận...';
+          const dh = await sha(s.details);
           const ts = Date.now();
-          const r = await api({ action: 'qr_confirm', emp: d.emp, req, bio, conds, ts, sig: await hmac(d.secret, ['cf', req, await sha(s.details), bio, conds, ts].join('|')) });
-          ui(r.status === 'ok' ? done : `<b style="color:#b91c1c">${H(r.message)}</b>`);
+          let r = await api({ action: 'qr_confirm', emp: d.emp, req, bio, conds, ts, sig: await hmac(d.secret, ['cf', req, dh, bio, conds, ts].join('|')) });
+          if (r.status !== 'ok') {
+            const ts2 = Date.now();
+            const st = await api({ action: 'qr_status', emp: d.emp, req, ts: ts2, sig: await hmac(d.secret, ['st', req, ts2].join('|')) });
+            if (st.status === 'ok' && st.state === 'CONFIRMED') r = { status: 'ok' };
+          }
+          if (r.status === 'ok') ui(done);
+          else { ui(`<b style="color:#b91c1c">${H(r.message)}</b><div style="font-size:11px;color:#64748b;margin-top:6px">Mã đối chiếu điện thoại: ${dh.slice(0, 6)}</div>${btn('retry', 'Thử lại')}`); document.getElementById('retry').onclick = () => details(d, req, s); }
         };
       }
       enroll ? doEnroll() : start();
     })();
+    function parseOth(v) { if (v === undefined || v === null || v === '') return undefined; const n = Number(v); return isNaN(n) ? undefined : Math.max(0, Math.min(100, Math.round(n))); }
+    function roleOthDefault(role) {
+      const r = String(role || '').toLowerCase();
+      if (/phó/.test(r) && /giám đốc/.test(r)) return 15;
+      if (/tổng giám đốc|ceo/.test(r)) return 100;
+      if (/giám đốc/.test(r)) return 15;
+      if (/quản lý/.test(r)) return 10;
+      return 0;
+    }
+    function othMaxOf(e) { return (e && typeof e.focOthMax === 'number' && !isNaN(e.focOthMax)) ? e.focOthMax : roleOthDefault(e && e.role); }
+    function qrCondText(c) { return String(c).split(';').map(x => ({ off: 'ngoài giờ làm việc', present: 'có mặt trực tiếp' }[x] || x)).join('; '); }
+    function othEdit(id) {
+      if (authSession.role !== 'admin') return;
+      const e = appState.employees.find(x => x.id === id); if (!e) return;
+      const v = prompt(`Quyền FOC-OTH của ${e.name} (${e.role})\nNhập mức giảm TỐI ĐA (%), 0 = không được dùng.\nGợi ý: Quản lý Nhà hàng 10, Giám đốc Vận hành 15, Tổng Giám đốc/CEO 100`, othMaxOf(e));
+      if (v === null) return;
+      const n = parseOth(v); if (n === undefined) { showToast('Nhập số từ 0 đến 100.', 'error'); return; }
+      e.focOthMax = n; saveAppState();
+      postToGoogleSheets({ action: 'sync_master', employees: appState.employees.map(emp => [emp.id, emp.code, emp.name, emp.phone, emp.role, emp.monthlyQuota, emp.restaurantId, emp.unit || '', othMaxOf(emp)]) });
+      renderHRTable(); showToast(`Đã đặt quyền FOC-OTH của ${e.name}: tối đa ${n}%`, 'success');
+    }
     window.addEventListener('load', initQrCard);
   </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v6.0</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v6.1</div>
 </body>
 </html>

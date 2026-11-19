@@ -1097,7 +1097,8 @@
       '    "Meal_Config": ["Restaurant_ID", "Mgr_PIN_Hash"],',
       '    "Devices": ["Employee_ID", "Secret", "Cred_ID", "Bio", "Status", "Enrolled_At"],',
       '    "Enroll_Tokens": ["Token", "Employee_ID", "Expires_At", "Used"],',
-      '    "Confirm_Requests": ["Req_ID", "Restaurant_ID", "Employee_ID", "Type", "Status", "Details_JSON", "Created_At", "Confirmed_At", "Bio", "Conds"]',
+      '    "Confirm_Requests": ["Req_ID", "Restaurant_ID", "Employee_ID", "Type", "Status", "Details_JSON", "Created_At", "Confirmed_At", "Bio", "Conds"],',
+      '    "Materials": ["Code", "Name", "Alt_Name", "Unit", "Type", "Account"]',
       '  };',
       '  Object.keys(schemas).forEach(function(name) {',
       '    let sheet = ss.getSheetByName(name);',
@@ -1274,6 +1275,7 @@
       '  let menuItems = readSheetObjects(ss.getSheetByName("Menu_Items"));',
       '  let mealMenus = readSheetObjects(ss.getSheetByName("Meal_Menus"));',
       '  let mealConfig = readSheetObjects(ss.getSheetByName("Meal_Config"));',
+      '  const materials = readSheetObjects(ss.getSheetByName("Materials"));',
       '  const devices = (branchId === "ALL") ? readSheetObjects(ss.getSheetByName("Devices")).map(function(r) { return { Employee_ID: r.Employee_ID, Status: r.Status, Enrolled_At: r.Enrolled_At, Bio: r.Bio }; }) : [];',
       '  if (branchId && branchId !== "ALL") {',
       '    restaurants = restaurants.filter(function(r) { return String(r.ID) === String(branchId); });',
@@ -1300,7 +1302,8 @@
       '    menuItems: menuItems,',
       '    mealMenus: mealMenus,',
       '    mealConfig: mealConfig,',
-      '    devices: devices',
+      '    devices: devices,',
+      '    materials: materials',
       '  });',
       '}',
       '',
@@ -1314,6 +1317,7 @@
       '    if (msg) return jsonResponse({ status: "error", message: msg });',
       '    if (branch !== "ALL") {',
       '      if (action === "set_meal_config") return jsonResponse({ status: "error", message: "Chỉ Admin được đặt PIN quản lý" });',
+      '      if (action === "sync_materials") return jsonResponse({ status: "error", message: "Chỉ Admin được nạp danh mục vật tư" });',
       '      if (action === "upsert_menu_item" && String(payload.row[1]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
       '      if (action === "upsert_meal_menu" && String(payload.row[2]) !== String(branch)) return jsonResponse({ status: "error", message: "Sai cơ sở" });',
       '      if (action === "push_all" || action === "sync_master") return jsonResponse({ status: "error", message: "Chỉ Admin được đồng bộ danh mục" });',
@@ -1327,6 +1331,8 @@
       '      deleteRowById(ss.getSheetByName("FOC_Logs"), 0, payload.id);',
       '    } else if (action === "upsert_meal") {',
       '      upsertRow(ss.getSheetByName("Staff_Meals"), 0, payload.row);',
+      '    } else if (action === "sync_materials") {',
+      '      replaceAllRows(ss.getSheetByName("Materials"), payload.rows || []);',
       '    } else if (action === "upsert_menu_item") {',
       '      upsertRow(ss.getSheetByName("Menu_Items"), 0, payload.row);',
       '    } else if (action === "upsert_meal_menu") {',
@@ -1471,6 +1477,7 @@
         adminPin: String(state.adminPin || ''),
         restaurants,
         employees,
+        materials: Array.isArray(state.materials) ? state.materials : [],
         menuItems: Array.isArray(state.menuItems) ? state.menuItems : [],
         mealMenus: (state.mealMenus && typeof state.mealMenus === 'object') ? state.mealMenus : {},
         mealConfig: (state.mealConfig && typeof state.mealConfig === 'object') ? state.mealConfig : {},
@@ -1943,6 +1950,9 @@
             let items = []; try { items = JSON.parse(m.Items_JSON || '[]'); } catch (e) {}
             appState.mealMenus[String(m.Key)] = { date: normalizeDateString(m.Date), restaurantId: String(m.Restaurant_ID), shift: String(m.Shift), items };
           });
+        }
+        if (Array.isArray(data.materials) && data.materials.length > 0) {
+          appState.materials = data.materials.map(m => ({ code: String(m.Code), name: String(m.Name || ''), alt: String(m.Alt_Name || ''), unit: String(m.Unit || ''), type: String(m.Type || ''), acct: String(m.Account || '') }));
         }
         deviceMap = {}; (data.devices || []).forEach(d => { deviceMap[String(d.Employee_ID)] = d; });
         if (Array.isArray(data.mealConfig) && data.mealConfig.length > 0) {
@@ -3762,18 +3772,18 @@
     function renderMealMgr() {
       const { rest } = mealCtx(); const unlocked = mealIsMgr(rest); const admin = authSession.role === 'admin';
       const lock = document.getElementById('mealMgrLock');
-      const lk = rest + '|' + unlocked + '|' + admin + '|' + !!appState.mealConfig[rest];
+      const lk = rest + '|' + unlocked + '|' + admin + '|' + !!appState.mealConfig[rest] + '|' + appState.materials.length;
       if (lock.dataset.k !== lk) {
         lock.dataset.k = lk;
         lock.innerHTML = unlocked
           ? `<div class="flex flex-wrap items-center gap-3 text-xs"><span class="px-2.5 py-1 rounded-lg bg-mindful-greenTint text-mindful-green font-bold"><i class="fa-solid fa-lock-open mr-1"></i>${admin ? 'Admin HC-NS' : 'Đã mở khóa quản lý'}</span>
-              ${admin ? `<span class="text-slate-600">Đặt/đổi PIN quản lý cho nhà hàng đang chọn (6-8 số):</span><input id="mealMgrPinNew" type="password" maxlength="8" class="w-28 rounded-lg border border-slate-300 px-2 py-1.5" /><button type="button" onclick="setMealMgrPin()" class="px-3 py-1.5 rounded-lg bg-mindful-gold text-mindful-green font-bold">Lưu PIN quản lý</button>` : `<button type="button" onclick="lockMealMgr()" class="px-3 py-1.5 rounded-lg border border-slate-300 font-semibold">Khóa lại</button>`}</div>`
+              ${admin ? `<span class="text-slate-600">Đặt/đổi PIN quản lý cho nhà hàng đang chọn (6-8 số):</span><input id="mealMgrPinNew" type="password" maxlength="8" class="w-28 rounded-lg border border-slate-300 px-2 py-1.5" /><button type="button" onclick="setMealMgrPin()" class="px-3 py-1.5 rounded-lg bg-mindful-gold text-mindful-green font-bold">Lưu PIN quản lý</button><label class="px-3 py-1.5 rounded-lg border border-mindful-gold/60 text-mindful-bronze font-bold cursor-pointer">Nạp danh mục vật tư (Excel)<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importMaterials(event)" /></label><span class="text-slate-500">Hiện có ${appState.materials.length} mã vật tư</span>` : `<button type="button" onclick="lockMealMgr()" class="px-3 py-1.5 rounded-lg border border-slate-300 font-semibold">Khóa lại</button>`}</div>`
           : `<div class="flex flex-wrap items-center gap-3 text-xs"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold"><i class="fa-solid fa-lock mr-1"></i>Chỉ quản lý được nhập menu &amp; định lượng</span>
               <input id="mealMgrPinInput" type="password" maxlength="8" placeholder="PIN quản lý" class="w-32 rounded-lg border border-slate-300 px-2 py-1.5" /><button type="button" onclick="unlockMealMgr()" class="px-3 py-1.5 rounded-lg bg-mindful-green text-white font-bold">Mở khóa</button></div>`;
       }
       renderMealMenuToday();
       const items = appState.menuItems.filter(i => i.restaurantId === rest && i.active !== false);
-      const ik = rest + '|' + unlocked + '|' + items.map(i => i.id + i.name + JSON.stringify(i.ingredients)).join(',');
+      const ik = rest + '|' + unlocked + '|' + appState.materials.length + '|' + items.map(i => i.id + i.name + JSON.stringify(i.ingredients)).join(',');
       const box = document.getElementById('mealItemsBox');
       if (box.dataset.k === ik) return;
       box.dataset.k = ik;
@@ -3781,19 +3791,77 @@
       box.innerHTML = `<div class="border-t border-slate-100 pt-3 space-y-3">
         <h4 class="text-sm font-bold text-mindful-green">Danh mục món &amp; định lượng (cho 1 suất ăn)</h4>
         <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-50 text-slate-600 text-left"><th class="p-2">Món</th><th class="p-2">Nhóm</th><th class="p-2">Nguyên liệu - định lượng / suất</th><th class="p-2 w-24"></th></tr></thead><tbody class="divide-y divide-slate-100">
-        ${items.map(i => `<tr><td class="p-2 font-bold text-mindful-green">${escapeHTML(i.name)}</td><td class="p-2 text-slate-500">${escapeHTML(i.group || '')}</td><td class="p-2 text-slate-700">${i.ingredients.map(g => escapeHTML(g.name) + ' ' + fmtQty(g.qty) + g.unit).join('; ')}</td><td class="p-2 text-right whitespace-nowrap"><button type="button" onclick="editMealItem('${i.id}')" class="text-mindful-bronze font-bold mr-2">Sửa</button><button type="button" onclick="deleteMealItem('${i.id}')" class="text-red-500 font-bold">Xóa</button></td></tr>`).join('') || '<tr><td colspan="4" class="p-3 text-center text-slate-400">Chưa có món nào. Thêm món bên dưới.</td></tr>'}</tbody></table></div>
+        ${items.map(i => `<tr><td class="p-2 font-bold text-mindful-green">${escapeHTML(i.name)}</td><td class="p-2 text-slate-500">${escapeHTML(i.group || '')}</td><td class="p-2 text-slate-700">${i.ingredients.map(g => escapeHTML(g.name) + (g.code ? ' <span class="text-slate-400">(' + escapeHTML(g.code) + ')</span>' : ' <span class="text-red-500 font-bold">[chưa gắn mã]</span>') + ' ' + fmtQty3(g.qty) + escapeHTML(g.unit)).join('; ')}</td><td class="p-2 text-right whitespace-nowrap"><button type="button" onclick="editMealItem('${i.id}')" class="text-mindful-bronze font-bold mr-2">Sửa</button><button type="button" onclick="deleteMealItem('${i.id}')" class="text-red-500 font-bold">Xóa</button></td></tr>`).join('') || '<tr><td colspan="4" class="p-3 text-center text-slate-400">Chưa có món nào. Thêm món bên dưới.</td></tr>'}</tbody></table></div>
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
           <div class="text-xs font-bold text-slate-700" id="miFormTitle">Thêm món mới</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="mi_name" placeholder="Tên món *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" /><input id="mi_group" placeholder="Nhóm (VD: Món mặn, Canh, Rau...)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" /></div>
-          <div id="mi_ings" class="space-y-1.5"></div>
+          ${matGroupSelectHtml()}<div id="mi_ings" class="space-y-1.5"></div>
           <div class="flex flex-wrap gap-2"><button type="button" onclick="addMealIngRow()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white">+ Thêm nguyên liệu</button><button type="button" onclick="saveMealItem()" class="px-3 py-1.5 rounded-lg bg-mindful-green text-white text-xs font-bold">Lưu món</button><button type="button" onclick="resetMealItemForm()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">Làm mới</button></div>
         </div></div>`;
       resetMealItemForm();
     }
-    function addMealIngRow(name = '', qty = '', unit = 'g') {
-      const d = document.createElement('div'); d.className = 'grid grid-cols-12 gap-1.5 mi-ing';
-      d.innerHTML = `<input placeholder="Nguyên liệu" value="${escapeHTML(name)}" class="col-span-6 rounded-lg border border-slate-300 px-2 py-1.5 text-sm mi-n" /><input type="number" min="0" step="any" placeholder="Định lượng" value="${qty}" class="col-span-3 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-right mi-q" /><select class="col-span-2 rounded-lg border border-slate-300 px-1 py-1.5 text-sm mi-u">${['g', 'kg', 'ml', 'l', 'cái', 'quả', 'lát', 'miếng', 'bó', 'gói'].map(u => `<option ${u === unit ? 'selected' : ''}>${u}</option>`).join('')}</select><button type="button" onclick="this.parentElement.remove()" class="col-span-1 text-red-500 font-bold">×</button>`;
-      document.getElementById('mi_ings').appendChild(d);
+    const LEGACY_UNITS = ['g', 'kg', 'ml', 'l', 'cái', 'quả', 'lát', 'miếng', 'bó', 'gói'];
+    let matGroupSel = '*';
+    const MAT_GROUPS = { NAGVKH: 'Gia vị khô', NAGVNU: 'Gia vị nước & sốt', NAHCUA: 'Hải sản - cua', NAHMUC: 'Hải sản - mực/bạch tuộc', NAHSCA: 'Hải sản - cá', NAHSKH: 'Hải sản - nhuyễn thể', NAHSTR: 'Hải sản - trứng cá', NAHTOM: 'Hải sản - tôm', NAKBOT: 'Bột & nguyên liệu khô', NAKGAO: 'Gạo & bánh', NAKHAC: 'Khô khác', NAKOMY: 'Mì & bún', NARCUQ: 'Củ quả', NARNAM: 'Nấm', NARRAU: 'Rau', NARRBI: 'Rong biển', NASBOP: 'Bơ & kem', NASPMA: 'Phô mai', NASSUA: 'Sữa', NATGCA: 'Gà', NATHBO: 'Bò', NATHEO: 'Heo', NATNTA: 'Nội tạng', NATPDG: 'Chế biến sẵn', NATRAI: 'Trái cây', NAVTRU: 'Trứng', NKBBA: 'Bao bì', NKBKH: 'Dụng cụ khác', NKDAVI: 'Đá', NUBBIA: 'Đồ uống - bia', NUBBIN: 'Đồ uống - nước bình', NUKCAF: 'Đồ uống - cà phê', NUKKHA: 'Đồ uống - pha chế', NUKTRA: 'Đồ uống - trà', NUNGOT: 'Đồ uống - nước ngọt', NURUOU: 'Đồ uống - rượu' };
+    function fmtQty3(n) { return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 }).format(n); }
+    function matPrefix(code) { const m = String(code).match(/^[A-Za-z]+/); return m ? m[0].toUpperCase() : '?'; }
+    function matNorm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd'); }
+    function matUnitKind(u) { const x = matNorm(u).trim(); return x === 'kg' ? 'kg' : (x === 'lit' || x === 'l') ? 'l' : ''; }
+    function matByCode(code) { return appState.materials.find(m => m.code === code); }
+    function matUnitOptions(dvt) { const k = matUnitKind(dvt); return k === 'kg' ? ['g', 'kg'] : k === 'l' ? ['ml', 'l'] : [dvt || '']; }
+    function ingQtyDvt(g) {
+      const q = Number(g.qty) || 0; if (!g.code) return q;
+      const k = matUnitKind(g.dvt), u = matNorm(g.unit).trim();
+      return k === 'kg' ? (u === 'g' ? q / 1000 : q) : k === 'l' ? (u === 'ml' ? q / 1000 : q) : q;
+    }
+    function ingView(g, n) {
+      if (g.code) return { key: g.code, label: g.name, qty: Math.round(ingQtyDvt(g) * n * 1e6) / 1e6, dvt: g.dvt, code: g.code };
+      const [q, u] = normUnit((Number(g.qty) || 0) * n, g.unit); return { key: '?|' + g.name + '|' + u, label: g.name, qty: q, dvt: u, code: '' };
+    }
+    function matGroupSelectHtml() {
+      if (!appState.materials.length) return '<div class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5">Chưa có Danh mục vật tư. Liên hệ Phòng HC-NS nạp danh mục để chọn nguyên liệu theo mã.</div>';
+      const groups = Array.from(new Set(appState.materials.map(m => matPrefix(m.code)))).sort();
+      return `<div class="flex flex-wrap items-center gap-2 text-xs"><span class="font-semibold text-slate-600">Nhóm vật tư:</span><select onchange="matGroupSel = this.value" class="rounded-lg border border-slate-300 px-2 py-1 bg-white"><option value="*">Tất cả (trừ đồ uống)</option><option value="ALL">Tất cả, kể cả đồ uống</option>${groups.map(p => `<option value="${p}">${escapeHTML(MAT_GROUPS[p] || p)} (${p})</option>`).join('')}</select><span class="text-slate-400">${appState.materials.length} mã. Gõ tên hoặc mã vật tư rồi bấm chọn trong gợi ý.</span></div>`;
+    }
+    function matSearch(q) {
+      const t = matNorm(q).trim(), g = matGroupSel;
+      const pool = appState.materials.filter(m => { const p = matPrefix(m.code); return g === '*' ? !p.startsWith('NU') : g === 'ALL' ? true : p === g; });
+      const words = t ? t.split(/\s+/) : [];
+      return pool.filter(m => { const hay = matNorm(m.code + ' ' + m.name + ' ' + m.alt); return words.every(w => hay.includes(w)); }).slice(0, 30);
+    }
+    function matPick(rowEl, code, preset) {
+      const m = matByCode(code) || (preset ? { code, name: preset.name, unit: preset.dvt, type: preset.type, acct: preset.acct } : null); if (!m) return;
+      rowEl.dataset.code = m.code; rowEl.dataset.name = m.name; rowEl.dataset.dvt = m.unit; rowEl.dataset.type = m.type; rowEl.dataset.acct = m.acct;
+      rowEl.querySelector('.mi-n').value = m.name;
+      rowEl.querySelector('.mi-info').innerHTML = `<span class="text-mindful-green font-semibold">${escapeHTML(m.code)}</span> · Đvt <b>${escapeHTML(m.unit)}</b> · Loại ${escapeHTML(m.type)} · TK ${escapeHTML(m.acct)}`;
+      const sel = rowEl.querySelector('.mi-u'), opts = matUnitOptions(m.unit);
+      sel.innerHTML = opts.map(u => `<option>${escapeHTML(u)}</option>`).join('');
+      if (preset && opts.includes(preset.unit)) sel.value = preset.unit;
+      if (preset && preset.qty) rowEl.querySelector('.mi-q').value = preset.qty;
+      rowEl.querySelector('.mi-sug').classList.add('hidden');
+    }
+    function addMealIngRow(g) {
+      g = g || {};
+      const rowEl = document.createElement('div'); rowEl.className = 'mi-ing grid grid-cols-12 gap-1.5 items-start';
+      rowEl.innerHTML = `<div class="col-span-6 relative"><input class="mi-n w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" autocomplete="off" placeholder="${appState.materials.length ? 'Gõ tên / mã vật tư rồi chọn...' : 'Nguyên liệu'}" /><div class="mi-sug hidden absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto bg-white border border-slate-300 rounded-lg shadow-lg text-xs"></div><div class="mi-info text-[10px] mt-0.5 text-slate-500"></div></div><input type="number" min="0" step="any" class="mi-q col-span-3 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-right" placeholder="Định lượng" /><select class="mi-u col-span-2 rounded-lg border border-slate-300 px-1 py-1.5 text-sm"></select><button type="button" onclick="this.parentElement.remove()" class="col-span-1 text-red-500 font-bold">×</button>`;
+      document.getElementById('mi_ings').appendChild(rowEl);
+      const inp = rowEl.querySelector('.mi-n'), sug = rowEl.querySelector('.mi-sug'), sel = rowEl.querySelector('.mi-u');
+      sel.innerHTML = LEGACY_UNITS.map(u => `<option>${u}</option>`).join('');
+      const show = () => {
+        if (!appState.materials.length) return;
+        const list = matSearch(inp.value);
+        sug.innerHTML = list.map(m => `<div data-c="${escapeHTML(m.code)}" class="px-2 py-1.5 hover:bg-emerald-50 cursor-pointer border-b border-slate-100"><b>${escapeHTML(m.name)}</b> <span class="text-slate-400">${escapeHTML(m.code)} · ${escapeHTML(m.unit)}</span></div>`).join('') || '<div class="px-2 py-1.5 text-slate-400">Không thấy vật tư phù hợp</div>';
+        sug.classList.remove('hidden');
+      };
+      inp.addEventListener('input', () => { if (rowEl.dataset.code) { rowEl.dataset.code = ''; rowEl.querySelector('.mi-info').textContent = ''; sel.innerHTML = LEGACY_UNITS.map(u => `<option>${u}</option>`).join(''); } show(); });
+      inp.addEventListener('focus', () => { if (!rowEl.dataset.code) show(); });
+      inp.addEventListener('blur', () => setTimeout(() => sug.classList.add('hidden'), 200));
+      sug.addEventListener('pointerdown', e => { const d = e.target.closest('[data-c]'); if (d) { e.preventDefault(); matPick(rowEl, d.dataset.c); } });
+      if (g.code) matPick(rowEl, g.code, g);
+      else if (g.name) {
+        inp.value = g.name; rowEl.querySelector('.mi-q').value = g.qty || ''; if (g.unit) sel.value = g.unit;
+        if (appState.materials.length) rowEl.querySelector('.mi-info').innerHTML = '<span class="text-red-600 font-bold">Chưa gắn mã vật tư: chọn lại từ danh mục</span>';
+      }
     }
     function resetMealItemForm() {
       mealEditId = null; document.getElementById('mi_name').value = ''; document.getElementById('mi_group').value = '';
@@ -3802,20 +3870,62 @@
     function editMealItem(id) {
       const it = appState.menuItems.find(i => i.id === id); if (!it) return;
       mealEditId = id; document.getElementById('mi_name').value = it.name; document.getElementById('mi_group').value = it.group || '';
-      document.getElementById('mi_ings').innerHTML = ''; it.ingredients.forEach(g => addMealIngRow(g.name, g.qty, g.unit));
+      document.getElementById('mi_ings').innerHTML = ''; it.ingredients.forEach(g => addMealIngRow(g));
       document.getElementById('miFormTitle').textContent = 'Sửa món: ' + it.name + ' (các ngày đã ghi giữ nguyên định lượng cũ)';
     }
     function saveMealItem() {
       const { rest } = mealCtx(); if (!mealIsMgr(rest)) return;
       const name = document.getElementById('mi_name').value.trim();
-      const ings = Array.from(document.querySelectorAll('#mi_ings .mi-ing')).map(r => ({ name: r.querySelector('.mi-n').value.trim(), qty: Number(r.querySelector('.mi-q').value) || 0, unit: r.querySelector('.mi-u').value })).filter(g => g.name || g.qty);
+      const needCode = appState.materials.length > 0; let bad = '';
+      const ings = [];
+      document.querySelectorAll('#mi_ings .mi-ing').forEach(r => {
+        const nm = r.querySelector('.mi-n').value.trim(), q = Number(r.querySelector('.mi-q').value) || 0, u = r.querySelector('.mi-u').value, code = r.dataset.code || '';
+        if (!nm && !q) return;
+        if (needCode && !code) { bad = `Nguyên liệu "${nm}" chưa chọn từ danh mục vật tư: gõ tên rồi bấm chọn trong gợi ý.`; return; }
+        if (!nm || q <= 0) { bad = 'Mỗi nguyên liệu phải có tên và định lượng lớn hơn 0.'; return; }
+        ings.push(code ? { code, name: r.dataset.name, dvt: r.dataset.dvt, type: r.dataset.type, acct: r.dataset.acct, qty: q, unit: u } : { name: nm, qty: q, unit: u });
+      });
       if (!name) { showToast('Nhập tên món.', 'error'); return; }
-      if (ings.length === 0 || ings.some(g => !g.name || g.qty <= 0)) { showToast('Mỗi nguyên liệu phải có tên và định lượng lớn hơn 0.', 'error'); return; }
+      if (bad) { showToast(bad, 'error'); return; }
+      if (ings.length === 0) { showToast('Thêm ít nhất một nguyên liệu.', 'error'); return; }
       let it = mealEditId && appState.menuItems.find(i => i.id === mealEditId);
       if (it) Object.assign(it, { name, group: document.getElementById('mi_group').value.trim(), ingredients: ings });
       else { it = { id: 'mi_' + Date.now(), restaurantId: rest, name, group: document.getElementById('mi_group').value.trim(), ingredients: ings, active: true }; appState.menuItems.push(it); }
       saveAppState(); postToGoogleSheets({ action: 'upsert_menu_item', row: mealItemRow(it) });
       showToast('Đã lưu món: ' + name, 'success'); renderMealMgr();
+    }
+    function importMaterials(ev) {
+      const input = ev.target, f = input.files && input.files[0]; if (!f) return;
+      if (authSession.role !== 'admin') { showToast('Chỉ Admin được nạp danh mục vật tư.', 'error'); input.value = ''; return; }
+      if (typeof XLSX === 'undefined') { showToast('Chưa tải được thư viện Excel (cần Internet).', 'error'); input.value = ''; return; }
+      const rd = new FileReader();
+      rd.onload = e => {
+        try {
+          const wb = XLSX.read(e.target.result, { type: 'array' });
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+          let map = { code: 0, name: 1, alt: 2, unit: 3, type: 4, acct: 5 };
+          const hdr = rows.findIndex(r => r.some(c => /^ma vat tu|^ma vt/.test(matNorm(c).trim())));
+          if (hdr >= 0) {
+            const h = rows[hdr].map(c => matNorm(c).trim()), fi = (re, d) => { const i = h.findIndex(x => re.test(x)); return i >= 0 ? i : d; };
+            map = { code: fi(/^ma vat tu|^ma vt/, 0), name: fi(/^ten vat tu|^ten vt|^ten hang/, 1), alt: fi(/^ten khac/, 2), unit: fi(/^dvt|^don vi/, 3), type: fi(/^loai/, 4), acct: fi(/^tk|^tai khoan/, 5) };
+          }
+          const list = [];
+          for (let i = hdr >= 0 ? hdr + 1 : 0; i < rows.length; i++) {
+            const r = rows[i], code = String(r[map.code] || '').trim(), name = String(r[map.name] || '').trim();
+            if (!code || !name) continue;
+            list.push({ code, name, alt: String(r[map.alt] || '').trim(), unit: String(r[map.unit] || '').trim(), type: String(r[map.type] || '').trim(), acct: String(r[map.acct] || '').trim() });
+          }
+          if (!list.length) { showToast('Không đọc được vật tư nào. Kiểm tra dòng tiêu đề (Mã vật tư, Tên vật tư, Đvt, Loại vật tư, Tk vật tư).', 'error'); return; }
+          const byCode = {}; appState.materials.forEach(m => { byCode[m.code] = m; }); let added = 0, updated = 0;
+          list.forEach(m => { if (byCode[m.code]) { Object.assign(byCode[m.code], m); updated++; } else { byCode[m.code] = m; added++; } });
+          appState.materials = Object.values(byCode); saveAppState();
+          postToGoogleSheets({ action: 'sync_materials', rows: appState.materials.map(m => [m.code, m.name, m.alt, m.unit, m.type, m.acct]) });
+          showToast(`Đã nạp danh mục vật tư: ${added} mã mới, ${updated} mã cập nhật (tổng ${appState.materials.length}).`, 'success');
+          renderMealSection();
+        } catch (err) { showToast('Lỗi đọc file danh mục: ' + err.message, 'error'); }
+        input.value = '';
+      };
+      rd.readAsArrayBuffer(f);
     }
     function deleteMealItem(id) {
       const it = appState.menuItems.find(i => i.id === id); if (!it || !confirm(`Xóa món "${it.name}" khỏi danh mục? Các ngày đã ghi vẫn giữ nguyên.`)) return;
@@ -3826,8 +3936,8 @@
       const items = appState.menuItems.filter(i => i.restaurantId === rest && i.active !== false);
       document.getElementById('mealMenuToday').innerHTML = `<h4 class="text-sm font-bold text-mindful-green">Menu ngày ${formatDateVN(date)}</h4>` + MEAL_SHIFTS.map(sh => {
         const m = appState.mealMenus[`${date}__${rest}__${sh.k}`]; const chosen = m ? m.items : []; const n = mealShiftCount(rest, date, sh.k);
-        const used = {}; chosen.forEach(it => it.ingredients.forEach(g => { const [q, u] = normUnit((Number(g.qty) || 0) * n, g.unit); const k = g.name + '|' + u; used[k] = (used[k] || 0) + q; }));
-        const useTxt = Object.entries(used).map(([k, q]) => { const [nm, u] = k.split('|'); return `${escapeHTML(nm)}: ${fmtQty(q)} ${u}`; }).join(' · ');
+        const used = {}; chosen.forEach(it => it.ingredients.forEach(g => { const v = ingView(g, n); const e = used[v.key] || (used[v.key] = { label: v.label, dvt: v.dvt, qty: 0 }); e.qty += v.qty; }));
+        const useTxt = Object.values(used).map(e => `${escapeHTML(e.label)}: ${fmtQty3(e.qty)} ${escapeHTML(e.dvt)}`).join(' · ');
         const all = items.concat(chosen.filter(c => !items.some(i => i.id === c.id)));
         const body = unlocked
           ? (all.length ? all.map(i => `<label class="inline-flex items-center gap-1.5 mr-3 mb-1 text-xs"><input type="checkbox" ${chosen.some(c => c.id === i.id) ? 'checked' : ''} onchange="toggleMealMenuItem('${sh.k}', '${i.id}', this.checked)" class="w-4 h-4" />${escapeHTML(i.name)}</label>`).join('') : '<span class="text-xs text-slate-400">Chưa có món trong danh mục, thêm món ở phần dưới.</span>')
@@ -3884,23 +3994,29 @@
       const menuTxt = (d, rid, sh) => (appState.mealMenus[`${d}__${rid}__${sh}`]?.items || []).map(i => i.name).join(', ');
       const byDay = [['Ngày', 'Nhà hàng', 'Ca 1', 'Ca 2', 'Tăng ca', 'Tổng suất', 'Menu Ca 1', 'Menu Ca 2', 'Menu Tăng ca']];
       Object.values(day).sort((a, b) => (a.date + a.rest).localeCompare(b.date + b.rest)).forEach(x => byDay.push([formatDateVN(x.date), rName(x.rest), x.s1, x.s2, x.ot, x.s1 + x.s2 + x.ot, menuTxt(x.date, x.rest, 's1'), menuTxt(x.date, x.rest, 's2'), menuTxt(x.date, x.rest, 'ot')]));
-      const ing = [['Ngày', 'Nhà hàng', 'Ca', 'Món', 'Nguyên liệu', 'Định lượng / suất', 'ĐVT', 'Số suất', 'Tiêu hao', 'ĐVT (quy đổi)']], tot = {};
+      const missing = [['Ngày', 'Nhà hàng', 'Ca', 'Số suất']], menuKeys = new Set();
+      const ing = [['Ngày', 'Nhà hàng', 'Ca', 'Món', 'Mã vật tư', 'Tên vật tư', 'Đvt', 'Loại vật tư', 'Tk vật tư', 'Định lượng / suất (theo Đvt)', 'Số suất', 'Tiêu hao (theo Đvt)']], tot = {};
       Object.entries(appState.mealMenus).filter(([k, m]) => m.date.startsWith(month) && (all || m.restaurantId === rest)).sort((a, b) => a[0].localeCompare(b[0])).forEach(([k, m]) => {
         const n = day[m.date + '|' + m.restaurantId]?.[m.shift] || 0, shName = MEAL_SHIFTS.find(x => x.k === m.shift)?.n || m.shift;
+        if (m.items.length) menuKeys.add(m.date + '|' + m.restaurantId + '|' + m.shift);
         m.items.forEach(it => it.ingredients.forEach(g => {
-          const [used, u] = normUnit((Number(g.qty) || 0) * n, g.unit);
-          ing.push([formatDateVN(m.date), rName(m.restaurantId), shName, it.name, g.name, Number(g.qty) || 0, g.unit, n, used, u]);
-          const key = (g.name || '').trim() + '|' + u; tot[key] = (tot[key] || 0) + used;
+          const v = ingView(g, n), per = g.code ? ingQtyDvt(g) : normUnit(Number(g.qty) || 0, g.unit)[0];
+          ing.push([formatDateVN(m.date), rName(m.restaurantId), shName, it.name, g.code || '(chưa gắn mã)', g.name, v.dvt, g.code ? (g.type || '') : '', g.code ? (g.acct || '') : '', Math.round(per * 1e6) / 1e6, n, v.qty]);
+          const t = tot[v.key] || (tot[v.key] = { code: g.code || '(chưa gắn mã)', name: g.name, dvt: v.dvt, type: g.code ? (g.type || '') : '', acct: g.code ? (g.acct || '') : '', qty: 0 });
+          t.qty = Math.round((t.qty + v.qty) * 1e6) / 1e6;
         }));
       });
-      const totRows = [['Nguyên liệu', 'ĐVT', 'Tổng tiêu hao trong tháng']].concat(Object.entries(tot).sort((a, b) => a[0].localeCompare(b[0])).map(([k, q]) => [k.split('|')[0], k.split('|')[1], q]));
-      const note = [['BÁO CÁO CƠM CA NHÂN VIÊN - THÁNG ' + month], ['Phạm vi: ' + (all ? 'Toàn chuỗi' : rName(rest))], [''], ['- Số suất lấy từ danh sách tích tên từng nhân viên theo ca.'], ['- Định lượng là lượng nguyên liệu cho 1 suất ăn; Tiêu hao = Số suất × Định lượng (kg quy đổi g, l quy đổi ml).'], ['- Ngày chưa nhập menu sẽ không có dòng nguyên liệu.'], ['- Đơn giá do Kế toán tra cứu và áp dụng.']];
+      Object.values(day).sort((a, b) => (a.date + a.rest).localeCompare(b.date + b.rest)).forEach(x => ['s1', 's2', 'ot'].forEach(f => {
+        if (x[f] > 0 && !menuKeys.has(x.date + '|' + x.rest + '|' + f)) missing.push([formatDateVN(x.date), rName(x.rest), MEAL_SHIFTS.find(s => s.k === f).n, x[f]]);
+      }));
+      const totRows = [['Mã vật tư', 'Tên vật tư', 'Đvt', 'Loại vật tư', 'Tk vật tư', 'Tổng tiêu hao trong tháng']].concat(Object.values(tot).sort((a, b) => String(a.acct).localeCompare(String(b.acct)) || String(a.code).localeCompare(String(b.code))).map(t => [t.code, t.name, t.dvt, t.type, t.acct, t.qty]));
+      const note = [['BÁO CÁO CƠM CA NHÂN VIÊN - THÁNG ' + month], ['Phạm vi: ' + (all ? 'Toàn chuỗi' : rName(rest))], [''], ['- Số suất lấy từ danh sách tích tên từng nhân viên theo ca.'], ['- Vật tư theo Danh mục nguyên vật liệu: Mã vật tư, Tên vật tư, Đvt, Loại vật tư, Tk vật tư. Dòng "(chưa gắn mã)" là món nhập trước khi có danh mục.'], ['- Định lượng là lượng nguyên liệu cho 1 suất ăn, đã quy đổi về Đvt của danh mục (g về KG, ml về Lít). Tiêu hao = Số suất × Định lượng.'], ['- Ca có suất ăn nhưng chưa nhập menu được liệt kê ở sheet "Ngày chưa có menu".'], ['- Đơn giá do Kế toán tra cứu và áp dụng.']];
       const wb = XLSX.utils.book_new();
-      [['Ghi chú', note], ['Tổng hợp theo ngày', byDay], ['Chi tiết nhân viên theo ngày', detail], ['Tổng hợp theo nhân viên', byEmp], ['Nguyên liệu theo ca', ing], ['Tổng nguyên liệu tháng', totRows]].forEach(([n, rows]) => {
+      [['Ghi chú', note], ['Tổng hợp theo ngày', byDay], ['Chi tiết nhân viên theo ngày', detail], ['Tổng hợp theo nhân viên', byEmp], ['Nguyên liệu theo ca', ing], ['Tổng nguyên liệu tháng', totRows], ['Ngày chưa có menu', missing]].forEach(([n, rows]) => {
         const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = rows[0].map((_, i) => ({ wch: Math.min(40, Math.max(10, ...rows.map(r => String(r[i] ?? '').length))) })); XLSX.utils.book_append_sheet(wb, ws, n);
       });
       XLSX.writeFile(wb, `BaoCao_ComCa_${(all ? 'ToanChuoi' : rName(rest)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^A-Za-z0-9]+/g, '_')}_${month}.xlsx`);
-      showToast('Đã xuất báo cáo cơm ca tháng ' + month, 'success');
+      showToast('Đã xuất báo cáo cơm ca tháng ' + month + (missing.length > 1 ? `. Có ${missing.length - 1} ca có suất ăn nhưng chưa nhập menu (xem sheet "Ngày chưa có menu").` : ''), missing.length > 1 ? 'info' : 'success');
     }
   
     // ===================== v6: XÁC NHẬN QR TRÊN ĐIỆN THOẠI NHÂN VIÊN =====================
@@ -4154,6 +4270,6 @@
     }
     window.addEventListener('load', initQrCard);
   </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v6.1</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#94a3b8;z-index:5">v6.2</div>
 </body>
 </html>
